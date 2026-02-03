@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Grammar Quest: Grand Master</title>
+    <title>English Grammar Quest: Full Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { --rpg-bg: #0a0a0a; --rpg-border: #fff; --rpg-red: #ff4757; --rpg-blue: #3498db; --rpg-gold: #eccc68; }
-        body { background: var(--rpg-bg); color: #fff; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; overflow-x: hidden; }
+        body { background: var(--rpg-bg); color: #fff; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; }
         
         #setup-screen { width: 100%; max-width: 800px; background: #1a1a1a; border: 4px solid var(--rpg-border); padding: 20px; border-radius: 10px; box-sizing: border-box; text-align: center; }
         .section-title { color: var(--rpg-gold); border-bottom: 1px solid #555; padding-bottom: 5px; margin: 20px 0 10px; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
-        .opt { background: #333; padding: 12px 5px; border: 2px solid #555; cursor: pointer; text-align: center; font-size: 0.85rem; border-radius: 5px; transition: 0.2s; }
-        .opt.selected { background: var(--rpg-blue); border-color: #fff; transform: scale(1.02); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+        .opt { background: #333; padding: 12px 5px; border: 2px solid #555; cursor: pointer; text-align: center; font-size: 0.85rem; border-radius: 5px; }
+        .opt.selected { background: var(--rpg-blue); border-color: #fff; }
         .count-options { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .count-btn { background: #444; color: #fff; border: 2px solid #777; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
         .count-btn.active { background: var(--rpg-red); border-color: #fff; }
@@ -45,9 +45,8 @@
 <body>
 
 <div id="setup-screen">
-    <h1 style="color:var(--rpg-gold); margin:0;">GRAMMAR QUEST</h1>
-    
-    <div class="section-title">1. 文法を選択（複数選択可）</div>
+    <h1 style="color:var(--rpg-gold); margin:0;">ENGLISH QUEST</h1>
+    <div class="section-title">1. 文法を選択（全18項目）</div>
     <div class="grid" id="grammar-grid"></div>
 
     <div class="section-title">2. 問題数を選択</div>
@@ -57,14 +56,13 @@
         <button class="count-btn" onclick="setCount(20, this)">20問</button>
         <button class="count-btn" onclick="setCount(999, this)">全問</button>
     </div>
-
     <button class="btn" style="width:100%; padding:18px; font-size:1.2rem; margin-top:15px;" onclick="initGame()">冒険を開始する</button>
 </div>
 
 <div id="game-screen">
     <div id="ui-layer">
         <div>QUEST: <span id="q-progress">0/0</span></div>
-        <div>PLAYER HP: <span id="p-hp" style="color:var(--rpg-red)">50</span>/50</div>
+        <div>HP: <span id="p-hp" style="color:var(--rpg-red)">50</span>/50</div>
     </div>
     <div id="stage">
         <div id="monster-sprite">🐉</div>
@@ -82,89 +80,86 @@
 
 <div id="exp-layer">
     <div id="exp-res" style="font-weight:bold; color:var(--rpg-blue); margin-bottom:10px;"></div>
-    <p id="exp-text" style="line-height:1.6;"></p>
+    <p id="exp-text"></p>
     <button class="btn" style="width:100%;" onclick="closeExp()">NEXT ▶</button>
 </div>
 
 <script>
+// 全18項目の完全版データベース
 const db = {
-    passive: { name: "受け身", q: [
-        {ja:"この手紙は健によって書かれました。", s:["This", "letter", "was", "wrote", "by", "Ken", "."], t:"wrote", a:"written", e:"受け身は【be動詞＋過去分詞】。writeの過去分詞はwrittenです。"},
-        {ja:"英語は多くの国で話されています。", s:["English", "is", "speak", "in", "many", "countries", "."], t:"speak", a:"spoken", e:"speakの過去分詞はspokenです。"},
-        {ja:"その寺は100年前に建てられました。", s:["The", "temple", "was", "build", "100", "years", "ago", "."], t:"build", a:"built", e:"buildの過去分詞はbuiltです。"}
+    passive: { name: "【受け身】", q: [
+        {ja:"この手紙は書かれました。", s:["This", "letter", "was", "wrote", "."], t:"wrote", a:"written", e:"受け身はbe動詞＋過去分詞。"},
+        {ja:"英語は話されています。", s:["English", "is", "speak", "."], t:"speak", a:"spoken", e:"speakの過去分詞はspoken。"}
     ]},
-    perfect: { name: "完了形", q: [
-        {ja:"私は3年間ずっとテニスをしています。", s:["I", "have", "play", "tennis", "for", "three", "years", "."], t:"play", a:"played", e:"現在完了は【have＋過去分詞】。"},
-        {ja:"彼はちょうど駅に着いたところです。", s:["He", "has", "just", "arrive", "at", "the", "station", "."], t:"arrive", a:"arrived", e:"完了の意味でも過去分詞を使います。"},
-        {ja:"あなたはもう宿題を終えましたか？", s:["Have", "you", "finish", "your", "homework", "yet", "?"], t:"finish", a:"finished", e:"疑問文でもhave...過去分詞の形です。"}
+    perfect: { name: "【完了形】", q: [
+        {ja:"3年間住んでいます。", s:["I", "have", "live", "here", "."], t:"live", a:"lived", e:"have＋過去分詞。"},
+        {ja:"ちょうど着いたところ。", s:["He", "has", "just", "arrive", "."], t:"arrive", a:"arrived", e:"現在完了は過去分詞。"}
     ]},
-    post: { name: "後置修飾(分詞)", q: [
-        {ja:"向こうで歌っている女の子は花子です。", s:["The", "girl", "sing", "over", "there", "is", "Hanako", "."], t:"sing", a:"singing", e:"「歌っている女の子」は現在分詞singingで修飾します。"},
-        {ja:"これは日本で作られた車です。", s:["This", "is", "a", "car", "make", "in", "Japan", "."], t:"make", a:"made", e:"「作られた車」は過去分詞madeで修飾します。"}
+    post: { name: "【後置修飾】", q: [
+        {ja:"歌っている少女。", s:["The", "girl", "sing", "there", "."], t:"sing", a:"singing", e:"～している少女は現在分詞(ing)。"},
+        {ja:"作られた車。", s:["A", "car", "make", "in", "Japan", "."], t:"make", a:"made", e:"～された車は過去分詞(made)。"}
     ]},
-    rel: { name: "関係代名詞", q: [
-        {ja:"これは私が昨日買った本です。", s:["This", "is", "the", "book", "who", "I", "bought", "."], t:"who", a:"which", e:"先行詞が「物(book)」なのでwhichを使います。"},
-        {ja:"あそこで走っている少年を見て。", s:["Look", "at", "the", "boy", "which", "is", "running", "."], t:"which", a:"who", e:"先行詞が「人(boy)」なのでwhoを使います。"}
+    rel: { name: "【関係代名詞】", q: [
+        {ja:"私が買った本。", s:["The", "book", "who", "I", "bought", "."], t:"who", a:"which", e:"物が先行詞ならwhich。"},
+        {ja:"走っている少年。", s:["The", "boy", "which", "is", "running", "."], t:"which", a:"who", e:"人ならwho。"}
     ]},
-    prog: { name: "進行形", q: [
-        {ja:"彼は今、走っています。", s:["He", "running", "now", "."], t:"running", a:"is running", e:"進行形はbe動詞を忘れずに！"},
-        {ja:"彼らは公園で泳いでいます。", s:["They", "are", "swim", "in", "the", "park", "."], t:"swim", a:"swimming", e:"swimはmを重ねてswimmingになります。"}
+    prog: { name: "【進行形】", q: [
+        {ja:"彼は走っています。", s:["He", "running", "now", "."], t:"running", a:"is running", e:"be動詞を忘れずに。"},
+        {ja:"泳いでいます。", s:["They", "are", "swim", "."], t:"swim", a:"swimming", e:"mを重ねてing。"}
     ]},
-    ing_only: { name: "動名詞のみ(ing)", q: [
-        {ja:"私はその本を読み終えた。", s:["I", "finished", "to", "read", "the", "book", "."], t:"to", a:"(削除)", e:"finishの後は動名詞(reading)のみを取ります。"},
-        {ja:"テレビを見るのをやめてください。", s:["Please", "stop", "to", "watch", "TV", "."], t:"to", a:"(削除)", e:"stop ～ingで「～するのをやめる」です。"},
-        {ja:"私は音楽を聴くのを楽しみました。", s:["I", "enjoyed", "to", "listen", "to", "music", "."], t:"to", a:"(削除)", e:"enjoyも動名詞のみを取る動詞です。"}
+    ing_only: { name: "【ingのみ動詞】", q: [
+        {ja:"読み終えた。", s:["I", "finished", "to", "read", "."], t:"to", a:"(削除)", e:"finishの後はreading。"},
+        {ja:"楽しんだ。", s:["I", "enjoyed", "to", "listen", "."], t:"to", a:"(削除)", e:"enjoyの後はlistening。"}
     ]},
-    to_only: { name: "不定詞のみ(to)", q: [
-        {ja:"私は医者になりたい。", s:["I", "want", "becoming", "a", "doctor", "."], t:"becoming", a:"to be", e:"wantはto不定詞を後ろに取ります。"},
-        {ja:"彼はそこへ行くことを決めた。", s:["He", "decided", "going", "there", "."], t:"going", a:"to go", e:"decideはto不定詞のみを取る動詞です。"}
+    to_only: { name: "【toのみ動詞】", q: [
+        {ja:"なりたい。", s:["I", "want", "becoming", "."], t:"becoming", a:"to be", e:"wantの後はto不定詞。"},
+        {ja:"決めた。", s:["He", "decided", "going", "."], t:"going", a:"to go", e:"decideはto不定詞。"}
     ]},
-    indirect: { name: "間接疑問文", q: [
-        {ja:"彼がどこに住んでいるか知っていますか？", s:["Do", "you", "know", "where", "does", "he", "live", "?"], t:"does", a:"(削除)", e:"間接疑問文は「疑問詞＋主語＋動詞」の語順です。"},
-        {ja:"彼女が何と言ったか教えてください。", s:["Please", "tell", "me", "what", "did", "she", "say", "."], t:"did", a:"(削除)", e:"what she saidの語順にします。"}
+    indirect: { name: "【間接疑問】", q: [
+        {ja:"どこに住んでいるか。", s:["Where", "does", "he", "live", "."], t:"does", a:"(削除)", e:"語順は肯定文(he lives)と同じ。"},
+        {ja:"彼が誰か。", s:["Who", "is", "he", "."], t:"is", a:"he is", e:"who he isの順。"}
     ]},
-    comp: { name: "比較", q: [
-        {ja:"この本はあの本より面白い。", s:["This", "book", "is", "more", "interesting", "as", "that", "one", "."], t:"as", a:"than", e:"比較級の後はthanを使います。"},
-        {ja:"彼はクラスで一番背が高い。", s:["He", "is", "the", "tallest", "of", "the", "class", "."], t:"of", a:"in", e:"範囲(クラスなど)を表すときはinを使います。"}
+    comp: { name: "【比較】", q: [
+        {ja:"彼より背が高い。", s:["He", "is", "taller", "as", "me", "."], t:"as", a:"than", e:"比較級の後はthan。"},
+        {ja:"一番大きい。", s:["The", "biggest", "of", "the", "world", "."], t:"of", a:"in", e:"範囲ならin。"}
     ]},
-    modal: { name: "助動詞", q: [
-        {ja:"彼は英語を話すことができます。", s:["He", "can", "speaks", "English", "."], t:"speaks", a:"speak", e:"助動詞(can)の後は必ず動詞の原形です。"},
-        {ja:"私は明日、忙しいでしょう。", s:["I", "will", "am", "busy", "tomorrow", "."], t:"am", a:"be", e:"willの後はbe動詞の原形beにします。"}
+    modal: { name: "【助動詞】", q: [
+        {ja:"泳げます。", s:["He", "can", "swims", "."], t:"swims", a:"swim", e:"助動詞の後は原形。"},
+        {ja:"忙しいでしょう。", s:["I", "will", "am", "busy", "."], t:"am", a:"be", e:"willの後は原形be。"}
     ]},
-    sub: { name: "仮定法", q: [
-        {ja:"もし私が鳥なら、飛んでいくのに。", s:["If", "I", "am", "a", "bird", ",", "I", "would", "fly", "."], t:"am", a:"were", e:"仮定法過去ではwereを使います。"},
-        {ja:"もっとお金があればいいのになあ。", s:["I", "wish", "I", "have", "more", "money", "."], t:"have", a:"had", e:"I wish ... の後は過去形で現在の願望を表します。"}
+    sub: { name: "【仮定法】", q: [
+        {ja:"もし鳥なら。", s:["If", "I", "am", "a", "bird", "."], t:"am", a:"were", e:"仮定法はwereを使います。"},
+        {ja:"あればいいのに。", s:["I", "wish", "I", "have", "time", "."], t:"have", a:"had", e:"wishの後は過去形。"}
     ]},
-    svoc: { name: "SVO+to/原形", q: [
-        {ja:"母は私に部屋を掃除させた。", s:["My", "mother", "made", "me", "to", "clean", "the", "room", "."], t:"to", a:"(削除)", e:"使役動詞makeは【人＋動詞の原形】です。"},
-        {ja:"私は彼に手伝ってくれるよう頼んだ。", s:["I", "asked", "him", "help", "me", "."], t:"help", a:"to help", e:"ask 人 to do。toが必要です。"}
+    svoc: { name: "【SVO＋to/原形】", q: [
+        {ja:"掃除させた。", s:["She", "made", "me", "to", "clean", "."], t:"to", a:"(削除)", e:"makeは原形不定詞。"},
+        {ja:"頼んだ。", s:["I", "asked", "him", "help", "."], t:"help", a:"to help", e:"ask 人 to 原形。"}
     ]},
-    itfor: { name: "形式主語It", q: [
-        {ja:"私にとって英語を話すのは難しい。", s:["It", "is", "difficult", "of", "me", "to", "speak", "English", "."], t:"of", a:"for", e:"It is ... for 人 to ～の形です。"},
-        {ja:"彼にとって走ることは簡単だ。", s:["It", "is", "easy", "for", "him", "running", "."], t:"running", a:"to run", e:"It is ～ to 原形の形にします。"}
+    itfor: { name: "【形式主語It】", q: [
+        {ja:"私には難しい。", s:["It", "is", "difficult", "of", "me", "to", "..."], t:"of", a:"for", e:"It is ... for 人 to ～。"},
+        {ja:"良いことだ。", s:["It", "is", "good", "to", "gets", "up", "."], t:"gets", a:"get", e:"toの後は原形。"}
     ]},
-    too_to: { name: "too..to/enough", q: [
-        {ja:"彼は若すぎて働けない。", s:["He", "is", "too", "young", "working", "."], t:"working", a:"to work", e:"too ～ to 原形で「あまりに～で～できない」。"}
+    too_to: { name: "【too to】", q: [
+        {ja:"若すぎて働けない。", s:["Too", "young", "working", "."], t:"working", a:"to work", e:"too ～ to 原形。"}
     ]},
-    tag: { name: "付加疑問文", q: [
-        {ja:"彼は親切ですよね？", s:["He", "is", "kind", ",", "isn't", "is", "?"], t:"is", a:"he", e:"付加疑問は代名詞を繰り返します。"}
+    tag: { name: "【付加疑問】", q: [
+        {ja:"親切ですよね？", s:["He", "is", "kind", ",", "isn't", "is", "?"], t:"is", a:"he", e:"代名詞heを繰り返す。"}
     ]},
-    exclam: { name: "感嘆文", q: [
-        {ja:"なんて美しい花なんだ！", s:["What", "a", "beautiful", "flower", "is", "this", "!"], t:"is this", a:"this is", e:"感嘆文の最後は「主語＋動詞」です。"}
+    exclam: { name: "【感嘆文】", q: [
+        {ja:"なんて美しい！", s:["What", "a", "beautiful", "flower", "is", "it", "!"], t:"is it", a:"it is", e:"最後は主語＋動詞。"}
     ]},
-    give: { name: "授与動詞", q: [
-        {ja:"彼は私に本をくれた。", s:["He", "gave", "a", "book", "me", "."], t:"me", a:"to me", e:"gave 物 to 人の語順です。"},
-        {ja:"父は私にケーキを作ってくれた。", s:["Father", "made", "a", "cake", "to", "me", "."], t:"to", a:"for", e:"makeはtoではなくforを使います。"}
+    give: { name: "【授与動詞】", q: [
+        {ja:"本をくれた。", s:["He", "gave", "a", "book", "me", "."], t:"me", a:"to me", e:"gave 物 to 人。"},
+        {ja:"作った。", s:["I", "made", "cake", "to", "me", "."], t:"to", a:"for", e:"makeはfor。"}
     ]},
-    inf_d: { name: "不定詞/動名詞", q: [
-        {ja:"私はテニスをすることが好きです。", s:["I", "like", "play", "tennis", "."], t:"play", a:"playing", e:"likeの後はdoingまたはto do。"}
+    inf_d: { name: "【不定詞/動名詞】", q: [
+        {ja:"テニスが好き。", s:["I", "like", "play", "tennis", "."], t:"play", a:"playing", e:"like playing。"}
     ]}
 };
 
 let playlist = [], qIdx = 0, mHp = 100, pHp = 50, currentQ = null;
 let targetCount = 10, attempts = 0;
 
-// 初期化：文法ボタン生成
 const grid = document.getElementById('grammar-grid');
 Object.keys(db).forEach(k => {
     const d = document.createElement('div');
@@ -187,7 +182,6 @@ function initGame() {
     sel.forEach(o => allQ.push(...db[o.dataset.key].q));
     allQ.sort(() => Math.random() - 0.5);
     playlist = allQ.slice(0, targetCount);
-    
     document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('game-screen').style.display = 'block';
     loadQuest();
@@ -195,8 +189,8 @@ function initGame() {
 
 function loadQuest() {
     if(qIdx >= playlist.length) { 
-        confetti({particleCount:150, spread:70});
-        alert("QUEST CLEAR! 全ての課題を達成しました。"); 
+        confetti({particleCount:150});
+        alert("QUEST CLEAR!"); 
         location.reload(); 
         return; 
     }
@@ -206,8 +200,7 @@ function loadQuest() {
     document.getElementById('ja-text').innerText = "和訳：" + currentQ.ja;
     document.getElementById('input-zone').style.display = 'none';
     document.getElementById('type-input').value = "";
-    document.getElementById('msg-box').innerText = "間違いの箇所をタッチせよ！";
-    
+    document.getElementById('msg-box').innerText = "間違いをタッチせよ！";
     const area = document.getElementById('sentence-area');
     area.innerHTML = "";
     currentQ.s.forEach(w => {
@@ -218,7 +211,6 @@ function loadQuest() {
                 d.classList.add('selected');
                 document.getElementById('input-zone').style.display = 'block';
                 document.getElementById('type-input').focus();
-                document.getElementById('msg-box').innerText = "正しい綴りを入力せよ！(チャンス2回)";
             } else {
                 pHp -= 2; updateUI();
                 document.body.classList.add('flash');
@@ -261,13 +253,8 @@ function showExp(res, text) {
 function closeExp() {
     document.getElementById('exp-layer').style.display = 'none';
     document.getElementById('monster-sprite').classList.remove('shake');
-    if(pHp <= 0) { 
-        alert("勇者は力尽きた..."); 
-        location.reload(); 
-    } else { 
-        qIdx++; 
-        loadQuest(); 
-    }
+    if(pHp <= 0) { alert("敗北..."); location.reload(); }
+    else { qIdx++; loadQuest(); }
 }
 
 function updateUI() {
