@@ -3,113 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRAMMAR QUEST: ULTIMATE</title>
+    <title>GRAMMAR QUEST: TRUE ULTIMATE</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --gold: #eccc68; --rpg-red: #ff4757; --rpg-blue: #2f3542;
-            --hp-green: #2ecc71; --hp-red: #e74c3c;
+            --hp-green: #2ecc71; --hp-red: #e74c3c; --wood: #5d4037;
         }
         body {
             background: #000 url('https://www.transparenttextures.com/patterns/dark-matter.png');
-            color: #fff; font-family: 'Georgia', serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
+            color: #fff; font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
         }
-        /* RPGボード UI */
-        #setup-screen, #game-screen {
-            width: 95%; max-width: 850px; background: #f4e4bc; border: 12px solid #8b4513;
-            padding: 30px; border-radius: 10px; box-shadow: 0 0 50px #000; text-align: center; color: #3d2b1f; box-sizing: border-box;
-        }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 20px 0; }
-        .opt { background: #5d4037; color: var(--gold); padding: 12px; border: 3px solid #3d2b1f; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 0.85rem; }
-        .opt.selected { background: var(--rpg-blue); color: #fff; border-color: var(--gold); }
-        
-        /* バトルエリア */
-        #battle-view { background: #1a1a2e; border: 4px solid var(--gold); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
-        #monster-sprite { font-size: 80px; transition: 0.2s; display: inline-block; }
-        .shake { animation: shake 0.3s; }
-        @keyframes shake { 0% {transform:translateX(0)} 25% {transform:translateX(10px)} 50% {transform:translateX(-10px)} 75% {transform:translateX(10px)} 100% {transform:translateX(0)} }
-        
-        /* HPバー */
-        .hp-container { width: 80%; background: #444; border: 2px solid var(--gold); height: 20px; margin: 10px auto; border-radius: 10px; overflow: hidden; }
-        #hp-fill { height: 100%; width: 100%; background: var(--hp-green); transition: width 0.5s ease; }
-        
-        /* カードエリア */
-        .card-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 15px; background: rgba(0,0,0,0.1); border-radius: 10px; min-height: 60px; }
-        .word-card, .word-unit { padding: 10px 15px; background: #fff; color: #000; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 4px #999; }
-        .word-unit.selected { background: var(--rpg-red); color: #fff; }
-        .word-card.used { opacity: 0.2; pointer-events: none; }
-        .answer-card { background: #3498db; color: #fff; }
 
-        .btn-action { width: 100%; padding: 15px; background: linear-gradient(#e74c3c, #c0392b); color: #fff; border: 4px solid #fff; border-radius: 8px; font-size: 1.5rem; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        #type-input { background: #000; color: var(--gold); border: 2px solid var(--gold); padding: 10px; width: 80%; text-align: center; font-size: 1.2rem; margin: 10px 0; }
-        #exp-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+        /* 羊皮紙風セットアップ画面 */
+        #setup-screen {
+            width: 95%; max-width: 900px; background: #f4e4bc; border: 12px solid #8b4513;
+            padding: 30px; border-radius: 10px; box-shadow: 0 0 50px #000; text-align: center; color: #3d2b1f;
+        }
+
+        /* 文法グリッド（全18項目を最初から表示） */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 25px 0; }
+        .opt { background: var(--wood); color: var(--gold); padding: 15px 5px; border: 3px solid #3d2b1f; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px #2a1b0a; transition: 0.1s; }
+        .opt.selected { background: var(--rpg-blue); color: #fff; border-color: var(--gold); transform: translateY(2px); box-shadow: none; }
+
+        /* バトル画面 */
+        #game-screen {
+            display: none; width: 95%; max-width: 800px; background: #2a1b0a; border: 5px solid var(--gold);
+            padding: 20px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,0,0,1); text-align: center;
+        }
+
+        #battle-view { background: #16213e; border: 4px solid var(--gold); border-radius: 10px; padding: 20px; margin-bottom: 20px; position: relative; }
+        #monster-sprite { font-size: 100px; transition: 0.2s; display: inline-block; filter: drop-shadow(0 0 10px red); }
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% {transform:translateX(0)} 20%, 60% {transform:translateX(15px)} 40%, 80% {transform:translateX(-15px)} }
+
+        /* HPバー */
+        .hp-container { width: 70%; background: #444; border: 2px solid var(--gold); height: 25px; margin: 15px auto; border-radius: 15px; overflow: hidden; }
+        #hp-fill { height: 100%; width: 100%; background: linear-gradient(to right, var(--hp-red), var(--hp-green)); transition: width 0.6s ease; }
+
+        /* カードUI（画像のようなデザイン） */
+        .card-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 20px; background: #333; border: 2px solid #555; border-radius: 10px; min-height: 80px; margin-bottom: 15px; box-shadow: inset 0 0 10px #000; }
+        .word-card, .word-unit { padding: 12px 20px; background: #fff; color: #000; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.2rem; box-shadow: 0 5px #999; }
+        .word-card.used { opacity: 0.2; transform: scale(0.9); }
+        .answer-word { background: #3498db !important; color: #fff !important; box-shadow: 0 5px #2980b9 !important; }
+        .word-unit.selected { background: var(--rpg-red); color: #fff; box-shadow: none; transform: translateY(3px); }
+
+        /* タイピングエリア */
+        #type-input { background: #000; color: var(--gold); border: 3px solid var(--gold); padding: 15px; width: 80%; text-align: center; font-size: 1.5rem; margin-bottom: 15px; border-radius: 8px; }
+
+        /* ボタン */
+        .btn-main { width: 100%; padding: 20px; background: linear-gradient(#3498db, #2980b9); color: #fff; border: 4px solid #fff; border-radius: 10px; font-size: 1.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 6px #1a5276; }
+        .btn-main:active { transform: translateY(4px); box-shadow: 0 2px #1a5276; }
+
+        /* 称号/経験値レイヤー */
+        #exp-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #exp-res { font-size: 4rem; color: var(--gold); text-shadow: 0 0 20px red; margin: 0; }
     </style>
 </head>
 <body>
 
 <div id="setup-screen">
-    <h1 style="margin:0;">GRAMMAR QUEST</h1>
-    <p>習得したい文法を選択せよ（複数可）</p>
+    <h1 style="margin:0; font-size: 3rem;">GRAMMAR QUEST</h1>
+    <div style="border-bottom: 2px solid #8b4513; display: inline-block; padding: 0 20px; font-style: italic;">Choose Your Magic Challenges</div>
     <div class="grid" id="grammar-grid"></div>
-    <button class="btn-action" style="background: #2980b9;" onclick="initGame()">QUEST START!</button>
+    <button class="btn-main" onclick="initGame()">QUEST START!</button>
 </div>
 
-<div id="game-screen" style="display:none;">
+<div id="game-screen">
     <div id="battle-view">
         <div id="monster-sprite">🐉</div>
         <div class="hp-container"><div id="hp-fill"></div></div>
-        <div id="status-info" style="color:var(--gold); font-size: 0.9rem;">Rank: <span id="player-rank">新米冒険者</span></div>
+        <div style="color:var(--gold); font-weight:bold;">Rank: <span id="player-rank">新米冒険者</span></div>
     </div>
     
-    <div id="ja-text" style="font-size:1.2rem; font-weight:bold; margin-bottom:10px;"></div>
-    
+    <div id="ja-text" style="font-size:1.5rem; font-weight:bold; color:var(--gold); margin-bottom:15px;"></div>
+
     <div id="sort-ui" style="display:none;">
-        <div id="answer-area" class="card-container" style="border: 2px solid var(--rpg-blue); margin-bottom: 10px;"></div>
+        <div id="answer-area" class="card-container"></div>
+        <div style="font-size: 0.8rem; color: #aaa; margin: 5px;">Your Cards</div>
         <div id="card-pool" class="card-container"></div>
     </div>
 
     <div id="fix-ui" style="display:none;">
         <div id="sentence-area" class="card-container"></div>
-        <input type="text" id="type-input" autocomplete="off" placeholder="正しく直して入力...">
+        <div id="input-zone" style="display:none;">
+            <input type="text" id="type-input" autocomplete="off" placeholder="修復魔法を入力...">
+        </div>
     </div>
 
-    <button class="btn-action" onclick="submitAttack()">ATTACK!</button>
-    <button onclick="resetCurrent()" style="margin-top:10px; background:none; border:none; color:#8b4513; cursor:pointer; text-decoration:underline;">やり直し</button>
+    <button class="btn-main" style="background: linear-gradient(#e74c3c, #c0392b);" onclick="submitAttack()">ATTACK!</button>
+    <div style="margin-top:10px; cursor:pointer; color: #888; text-decoration: underline;" onclick="resetCurrent()">Reset Turn</div>
 </div>
 
 <div id="exp-layer">
-    <h1 id="exp-res" style="font-size:3rem;"></h1>
-    <p id="exp-text" style="padding: 20px; text-align: center; font-size: 1.2rem;"></p>
-    <div id="rank-up-msg" style="color:var(--gold); font-weight:bold; margin-bottom:20px;"></div>
-    <button class="btn-action" style="width:200px;" onclick="closeExp()">NEXT ▶</button>
+    <h1 id="exp-res"></h1>
+    <p id="exp-text" style="font-size:1.5rem; padding: 20px; max-width: 600px;"></p>
+    <div id="rank-up-msg" style="color:var(--gold); font-size:2rem; margin-bottom:20px; height: 40px;"></div>
+    <button class="btn-main" style="width:300px;" onclick="closeExp()">NEXT BATTLE ▶</button>
 </div>
 
 <script>
 const db = {
-    passive: { name: "受け身", mode: "fix", q: [{ja:"この手紙は健によって書かれました。", s:["This", "letter", "was", "wrote", "by", "Ken", "."], t:"wrote", a:"written", e:"be動詞＋過去分詞です。"}]},
-    perfect: { name: "完了形", mode: "fix", q: [{ja:"3年間ずっとここに住んでいます。", s:["I", "have", "live", "here", "for", "3", "years", "."], t:"live", a:"lived", e:"have＋過去分詞です。"}]},
-    post: { name: "後置修飾", mode: "fix", q: [{ja:"向こうで歌っている少女は花子です。", s:["The", "girl", "sing", "over", "there", "is", "Hanako", "."], t:"sing", a:"singing", e:"singingがgirlを修飾しています。"}]},
-    rel: { name: "関係代名詞", mode: "sort", q: [{ja:"これは私が昨日買った本です。", a:["This", "is", "the", "book", "which", "I", "bought", "yesterday", "."], e:"先行詞が物なのでwhichを使います。"}]},
-    indirect: { name: "間接疑問文", mode: "sort", q: [{ja:"彼がどこに住んでいるか知ってる？", a:["Do", "you", "know", "where", "he", "lives", "?"], e:"語順は『疑問詞＋S＋V』です。"}]},
-    itfor: { name: "形式主語It", mode: "sort", q: [{ja:"英語を話すのは難しい。", a:["It", "is", "difficult", "for", "me", "to", "speak", "English", "."], e:"It is ... for 人 to ... の形です。"}]},
-    prog: { name: "進行形", mode: "fix", q: [{ja:"彼は今走っています。", s:["He", "running", "now", "."], t:"running", a:"is running", e:"be動詞を忘れないで！"}]},
-    ing_only: { name: "動名詞(ing)", mode: "fix", q: [{ja:"テレビを見るのをやめた。", s:["He", "stopped", "to", "watch", "TV", "."], t:"to", a:"(削除)", e:"stopの後はingのみ。"}]},
-    to_only: { name: "不定詞(to)", mode: "fix", q: [{ja:"医者になりたい。", s:["I", "want", "becoming", "a", "doctor", "."], t:"becoming", a:"to be", e:"wantの後はto不定詞。"}]},
+    indirect: { name: "間接疑問文", mode: "sort", q: [{ja:"彼がどこに住んでいるか知ってる？", a:["Do", "you", "know", "where", "he", "lives", "?"], e:"語順は『疑問詞＋主語＋動詞』。疑問文の語順にはしません。"}]},
+    rel: { name: "関係代名詞", mode: "sort", q: [{ja:"これは私が昨日買った本です。", a:["This", "is", "the", "book", "which", "I", "bought", "yesterday", "."], e:"先行詞が物の時はwhichを接着剤にします。"}]},
+    itfor: { name: "形式主語It", mode: "sort", q: [{ja:"英語を話すのは難しい。", a:["It", "is", "difficult", "for", "me", "to", "speak", "English", "."], e:"『It is 〜 for 人 to ...』の重要構文です。"}]},
+    exclam: { name: "感嘆文", mode: "sort", q: [{ja:"なんて美しい花なんだ！", a:["What", "a", "beautiful", "flower", "this", "is", "!"], e:"What (a) 形容詞 名詞 S V ! の順です。"}]},
+    give: { name: "授与動詞", mode: "sort", q: [{ja:"彼は私に本をくれた。", a:["He", "gave", "the", "book", "to", "me", "."], e:"gave 物 to 人。語順が入れ替わる時はtoが必要です。"}]},
+    passive: { name: "受け身", mode: "fix", q: [{ja:"この手紙は健に書かれた。", s:["This", "letter", "was", "wrote", "by", "Ken", "."], t:"wrote", a:"written", e:"be動詞＋過去分詞です。"}]},
+    perfect: { name: "完了形", mode: "fix", q: [{ja:"3年間ずっと住んでいる。", s:["I", "have", "live", "here", "for", "3", "years", "."], t:"live", a:"lived", e:"have＋過去分詞です。"}]},
+    post: { name: "後置修飾", mode: "fix", q: [{ja:"あそこで歌う少女は花子だ。", s:["The", "girl", "sing", "over", "there", "is", "Hanako", "."], t:"sing", a:"singing", e:"singingが後ろからgirlを説明します。"}]},
+    prog: { name: "進行形", mode: "fix", q: [{ja:"彼は今走っている。", s:["He", "running", "now", "."], t:"running", a:"is running", e:"be動詞が抜けています。"}]},
+    ing_only: { name: "動名詞(ing)", mode: "fix", q: [{ja:"テレビを見るのをやめた。", s:["He", "stopped", "to", "watch", "TV", "."], t:"to", a:"(削除)", e:"stopの後はingのみです。"}]},
+    to_only: { name: "不定詞(to)", mode: "fix", q: [{ja:"医者になりたい。", s:["I", "want", "becoming", "a", "doctor", "."], t:"becoming", a:"to be", e:"wantの後はto不定詞です。"}]},
     comp: { name: "比較", mode: "fix", q: [{ja:"彼より背が高い。", s:["He", "is", "taller", "as", "me", "."], t:"as", a:"than", e:"比較級の後はthanです。"}]},
-    modal: { name: "助動詞", mode: "fix", q: [{ja:"英語を話せます。", s:["He", "can", "speaks", "English", "."], t:"speaks", a:"speak", e:"助動詞の後は原形です。"}]},
-    sub: { name: "仮定法", mode: "fix", q: [{ja:"もし鳥なら飛べるのに。", s:["If", "I", "am", "a", "bird", ",", "I", "could", "fly", "."], t:"am", a:"were", e:"仮定法ではwereを使います。"}]},
-    svoc: { name: "使役make", mode: "fix", q: [{ja:"掃除させた。", s:["Made", "me", "to", "clean", "the", "room", "."], t:"to", a:"(削除)", e:"makeは原形不定詞を取ります。"}]},
+    modal: { name: "助動詞", mode: "fix", q: [{ja:"英語を話せる。", s:["He", "can", "speaks", "English", "."], t:"speaks", a:"speak", e:"助動詞の後は必ず原形です。"}]},
+    sub: { name: "仮定法", mode: "fix", q: [{ja:"もし鳥なら飛べるのに。", s:["If", "I", "am", "a", "bird", ",", "I", "could", "fly", "."], t:"am", a:"were", e:"仮定法のIf節はwereを使います。"}]},
+    svoc: { name: "使役make", mode: "fix", q: [{ja:"掃除させた。", s:["Made", "me", "to", "clean", "the", "room", "."], t:"to", a:"(削除)", e:"make 人 原形不定詞です。"}]},
     too_to: { name: "too..to", mode: "fix", q: [{ja:"若すぎて働けない。", s:["Too", "young", "working", "."], t:"working", a:"to work", e:"too 〜 to 原形です。"}]},
-    tag: { name: "付加疑問", mode: "fix", q: [{ja:"親切ですよね？", s:["He", "is", "kind", ",", "isn't", "is", "?"], t:"is", a:"he", e:"最後は代名詞を使います。"}]},
-    exclam: { name: "感嘆文", mode: "sort", q: [{ja:"なんて美しい花だ！", a:["What", "a", "beautiful", "flower", "this", "is", "!"], e:"最後はS+Vの順です。"}]},
-    give: { name: "授与動詞", mode: "sort", q: [{ja:"本をくれた。", a:["He", "gave", "the", "book", "to", "me", "."], e:"gave 物 to 人 の順です。"}]},
-    inf_d: { name: "不定詞/動名詞", mode: "fix", q: [{ja:"泳ぐのは楽しい。", s:["Swim", "is", "fun", "."], t:"Swim", a:"Swimming", e:"主語にはing/toを使います。"}]}
+    tag: { name: "付加疑問", mode: "fix", q: [{ja:"親切ですよね？", s:["He", "is", "kind", ",", "isn't", "is", "?"], t:"is", a:"he", e:"代名詞で受けます。"}]},
+    inf_d: { name: "不定詞/動名詞", mode: "fix", q: [{ja:"泳ぐのは楽しい。", s:["Swim", "is", "fun", "."], t:"Swim", a:"Swimming", e:"主語にするならingかtoです。"}]}
 };
 
-const monsters = ["👹", "👺", "🐉", "💀", "👾"];
+const monsters = ["👹", "👺", "🐉", "💀", "👾", "🦊", "🐘"];
 let playlist = [], qIdx = 0, currentQ = null, userAns = [], score = 0, monsterHp = 100;
-let rank = "新米冒険者";
 
+// 文法グリッド生成（最初から全表示）
 const grid = document.getElementById('grammar-grid');
 Object.keys(db).forEach(k => {
     const d = document.createElement('div'); d.className = 'opt'; d.innerText = db[k].name;
@@ -127,16 +145,14 @@ function initGame() {
 }
 
 function loadQuest() {
-    if(qIdx >= playlist.length) { alert("完全制覇！伝説の冒険者となりました！"); location.reload(); return; }
-    currentQ = playlist[qIdx]; userAns = []; monsterHp = 100;
-    updateHp();
+    if(qIdx >= playlist.length) { alert("ALL CLEAR!"); location.reload(); return; }
+    currentQ = playlist[qIdx]; userAns = []; monsterHp = 100; updateHp();
     document.getElementById('monster-sprite').innerText = monsters[qIdx % monsters.length];
     document.getElementById('ja-text').innerText = currentQ.ja;
     document.getElementById('fix-ui').style.display = currentQ.mode === "fix" ? "block" : "none";
     document.getElementById('sort-ui').style.display = currentQ.mode === "sort" ? "block" : "none";
-    
-    if(currentQ.mode === "sort") renderSort();
-    else renderFix();
+    document.getElementById('input-zone').style.display = "none";
+    if(currentQ.mode === "sort") renderSort(); else renderFix();
 }
 
 function renderSort() {
@@ -146,7 +162,7 @@ function renderSort() {
         const card = document.createElement('div'); card.className = 'word-card'; card.innerText = w;
         card.onclick = () => {
             userAns.push(w); card.classList.add('used');
-            const ac = document.createElement('div'); ac.className = 'word-card answer-card'; ac.innerText = w;
+            const ac = document.createElement('div'); ac.className = 'word-card answer-word'; ac.innerText = w;
             document.getElementById('answer-area').appendChild(ac);
         }; pool.appendChild(card);
     });
@@ -154,18 +170,14 @@ function renderSort() {
 
 function renderFix() {
     const area = document.getElementById('sentence-area'); area.innerHTML = "";
-    document.getElementById('type-input').value = "";
     currentQ.s.forEach(w => {
         const d = document.createElement('div'); d.className = 'word-unit'; d.innerText = w;
         d.onclick = () => {
             document.querySelectorAll('.word-unit').forEach(u => u.classList.remove('selected'));
-            d.classList.add('selected'); document.getElementById('type-input').focus();
+            d.classList.add('selected'); document.getElementById('input-zone').style.display = 'block';
+            document.getElementById('type-input').value = ""; document.getElementById('type-input').focus();
         }; area.appendChild(d);
     });
-}
-
-function updateHp() {
-    document.getElementById('hp-fill').style.width = monsterHp + "%";
 }
 
 function submitAttack() {
@@ -181,30 +193,30 @@ function submitAttack() {
     }
 
     if(ok) {
-        monsterHp -= 100; updateHp();
+        monsterHp = 0; updateHp();
         document.getElementById('monster-sprite').classList.add('shake');
-        confetti({particleCount: 100, origin: {y:0.6}});
+        confetti({particleCount: 150, origin: {y:0.6}});
         setTimeout(() => {
             document.getElementById('monster-sprite').classList.remove('shake');
             score++; checkRank();
             showExp("✨ GREAT HIT!", currentQ.e);
-        }, 500);
+        }, 600);
     } else {
-        alert("ミス！敵の反撃だ！(やり直してみてね)");
+        alert("MISS! 敵の防御に阻まれた！");
         resetCurrent();
     }
 }
 
+function updateHp() { document.getElementById('hp-fill').style.width = monsterHp + "%"; }
+
 function checkRank() {
-    const ranks = ["新米冒険者", "見習い騎士", "文法マスター", "勇者", "伝説の賢者"];
-    let nextRank = ranks[Math.min(Math.floor(score/3), 4)];
-    if(nextRank !== rank) {
-        rank = nextRank;
-        document.getElementById('rank-up-msg').innerText = "RANK UP!! → " + rank;
-        document.getElementById('player-rank').innerText = rank;
-    } else {
-        document.getElementById('rank-up-msg').innerText = "";
-    }
+    const ranks = ["新米冒険者", "見習い騎士", "文法マスター", "魔導士", "勇者", "伝説の賢者"];
+    const rankIdx = Math.min(Math.floor(score/3), ranks.length - 1);
+    const nextRank = ranks[rankIdx];
+    if(nextRank !== document.getElementById('player-rank').innerText) {
+        document.getElementById('player-rank').innerText = nextRank;
+        document.getElementById('rank-up-msg').innerText = "RANK UP: " + nextRank + "!!";
+    } else { document.getElementById('rank-up-msg').innerText = ""; }
 }
 
 function showExp(res, text) {
@@ -219,11 +231,7 @@ function closeExp() {
 }
 
 function resetCurrent() {
-    if(currentQ.mode === "sort") renderSort();
-    else {
-        document.getElementById('type-input').value = "";
-        document.querySelectorAll('.word-unit').forEach(u => u.classList.remove('selected'));
-    }
+    if(currentQ.mode === "sort") renderSort(); else renderFix();
 }
 </script>
 </body>
