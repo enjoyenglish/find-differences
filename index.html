@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Grammar Quest: Enhanced</title>
+    <title>English Grammar Quest: Hybrid</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { --rpg-bg: #0a0a0a; --rpg-border: #fff; --rpg-red: #ff4757; --rpg-blue: #3498db; --rpg-gold: #eccc68; }
@@ -14,78 +14,80 @@
         .opt { background: #333; padding: 12px 5px; border: 2px solid #555; cursor: pointer; border-radius: 5px; font-size: 0.85rem; }
         .opt.selected { background: var(--rpg-blue); border-color: #fff; }
 
-        #game-screen { display: none; width: 100%; max-width: 500px; }
-        #stage { height: 160px; border: 3px solid #fff; background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 10px; }
-        #monster-sprite { font-size: 60px; transition: 0.2s; }
+        #game-screen { display: none; width: 100%; max-width: 600px; text-align: center; }
+        #stage { height: 120px; border: 3px solid #fff; background: #1a1a2e; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; font-size: 50px; }
         
-        #msg-box { min-height: 60px; border: 3px solid #fff; padding: 10px; background: #000; margin: 10px 0; text-align: center; border-left: 8px solid var(--rpg-gold); font-weight: bold; }
-        #ja-text { color: var(--rpg-gold); text-align: center; margin-bottom: 15px; font-size: 1.1rem; }
+        #msg-box { min-height: 50px; border: 3px solid #fff; padding: 10px; background: #000; margin: 10px 0; border-left: 8px solid var(--rpg-gold); font-weight: bold; }
+        #ja-text { color: var(--rpg-gold); margin-bottom: 15px; font-size: 1.1rem; font-weight: bold; }
         
-        .sentence-box { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
-        .word-unit { padding: 10px 15px; border: 2px solid #777; background: #333; cursor: pointer; border-radius: 6px; font-size: 1.2rem; }
-        .word-unit.selected { background: var(--rpg-red); border-color: #fff; }
+        /* 共通カードスタイル */
+        .card-container { min-height: 60px; border: 2px dashed #444; padding: 15px; margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .word-unit, .word-card { padding: 10px 18px; background: #fff; color: #000; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px #999; }
+        .word-unit.selected { background: var(--rpg-red); color: #fff; box-shadow: none; transform: translateY(2px); }
+        .word-card.used { opacity: 0.3; pointer-events: none; }
+        .answer-word { background: var(--rpg-blue); color: #fff; box-shadow: 0 4px #0056b3; }
 
-        #input-zone { display: none; text-align: center; padding: 20px; background: #222; border-radius: 10px; border: 2px dashed var(--rpg-gold); }
+        /* 入力エリア */
+        #input-zone { display: none; padding: 20px; background: #222; border-radius: 10px; border: 2px solid var(--rpg-gold); }
         #type-input { background: #000; color: #fff; border: 2px solid var(--rpg-gold); padding: 12px; width: 80%; text-align: center; font-size: 1.3rem; margin-bottom: 10px; }
-        .btn { padding: 12px 30px; background: #fff; color: #000; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; }
 
-        #exp-layer { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; background: #000; border: 4px solid var(--rpg-blue); padding: 25px; z-index: 100; }
+        .btn { padding: 12px 30px; background: var(--rpg-red); color: #fff; border: 2px solid #fff; font-weight: bold; cursor: pointer; font-size: 1.1rem; margin: 5px; border-radius: 5px; }
+        #exp-layer { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; background: #000; border: 4px solid var(--rpg-blue); padding: 25px; z-index: 100; box-shadow: 0 0 50px #000; }
     </style>
 </head>
 <body>
 
 <div id="setup-screen">
-    <h1 style="color:var(--rpg-gold);">GRAMMAR QUEST</h1>
-    <p>1. 練習したい文法をタップして選択</p>
+    <h1 style="color:var(--rpg-gold);">GRAMMAR QUEST: HYBRID</h1>
+    <p>全18項目対応。問題形式は自動で切り替わります。</p>
     <div class="grid" id="grammar-grid"></div>
-    <button class="btn" style="width:100%;" onclick="initGame()">冒険を開始する</button>
+    <button class="btn" style="width:100%; background: var(--rpg-blue);" onclick="initGame()">冒険を開始する</button>
 </div>
 
 <div id="game-screen">
-    <div id="stage">
-        <div id="monster-sprite">👺</div>
-        <div style="font-size: 0.8rem;">HP: <span id="m-hp-text">100</span>%</div>
-    </div>
-    
-    <div id="msg-box">【STEP 1】<br>文の中でおかしい単語を１つ選んで！</div>
-    
+    <div id="stage">👾</div>
+    <div id="msg-box"></div>
     <div id="ja-text"></div>
-    <div id="sentence-area" class="sentence-box"></div>
-
-    <div id="input-zone">
-        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--rpg-gold);">【STEP 2】正しい単語（綴り）を入力せよ！</p>
-        <input type="text" id="type-input" autocomplete="off" placeholder="ここに入力...">
-        <br>
-        <button class="btn" onclick="submitAttack()">攻撃(ATTACK!)</button>
+    
+    <div id="sort-ui" style="display:none;">
+        <div id="answer-area" class="card-container"></div>
+        <div id="card-pool" class="card-container"></div>
+        <button class="btn" style="background:#555" onclick="resetSort()">やり直し</button>
     </div>
+
+    <div id="fix-ui" style="display:none;">
+        <div id="sentence-area" class="card-container"></div>
+        <div id="input-zone">
+            <input type="text" id="type-input" autocomplete="off">
+        </div>
+    </div>
+
+    <button class="btn" onclick="submitAttack()">攻撃(ATTACK!)</button>
 </div>
 
 <div id="exp-layer">
     <h2 id="exp-res"></h2>
     <p id="exp-text"></p>
-    <button class="btn" style="width:100%;" onclick="closeExp()">次へ進む ▶</button>
+    <button class="btn" style="width:100%; background: var(--rpg-blue);" onclick="closeExp()">次へ ▶</button>
 </div>
 
 <script>
-// 文法の修正と追加
 const db = {
-    indirect: { name: "【間接疑問】", q: [
-        {ja:"彼が誰なのか知りません。", s:["I", "don't", "know", "who", "is", "he", "."], t:"is", a:"he is", e:"間接疑問文は「疑問詞＋主語＋動詞」の順です。isを消してhe isと直します。"},
-        {ja:"彼女がどこに住んでいるか知っていますか？", s:["Do", "you", "know", "where", "does", "she", "live", "?"], t:"does", a:"(削除)", e:"間接疑問文の中ではdo/does/didは使いません。"},
-        {ja:"彼が何を買ったか覚えています。", s:["I", "remember", "what", "did", "he", "buy", "."], t:"did", a:"he bought", e:"過去形の疑問文も「主語＋過去形動詞」に戻ります。"}
+    indirect: { name: "【間接疑問】", mode: "sort", q: [
+        {ja:"彼が誰なのか知りません。", a:["I", "don't", "know", "who", "he", "is", "."], e:"語順は『疑問詞＋S＋V』です。"},
+        {ja:"どこに彼女が住んでいるか教えて。", a:["Please", "tell", "me", "where", "she", "lives", "."], e:"doesを使わず、livesにします。"}
     ]},
-    passive: { name: "【受け身】", q: [
-        {ja:"この本は夏目漱石によって書かれた。", s:["This", "book", "was", "wrote", "by", "Soseki", "."], t:"wrote", a:"written", e:"受け身は be動詞＋過去分詞 です。"}
+    passive: { name: "【受け身】", mode: "fix", q: [
+        {ja:"この手紙は健によって書かれました。", s:["This", "letter", "was", "wrote", "by", "Ken", "."], t:"wrote", a:"written", e:"受け身は be動詞＋過去分詞 です。"}
     ]},
-    svoc: { name: "【使役・依頼】", q: [
-        {ja:"彼は私に部屋を掃除させた。", s:["He", "made", "me", "to", "clean", "the", "room", "."], t:"to", a:"(削除)", e:"使役のmakeの後は「人＋動詞の原形」です。"}
+    perfect: { name: "【完了形】", mode: "fix", q: [
+        {ja:"私は3年間ずっとテニスをしています。", s:["I", "have", "play", "tennis", "for", "three", "years", "."], t:"play", a:"played", e:"現在完了は have＋過去分詞 です。"}
     ]}
-    // ... 他の文法は前回のリストを参照して追加可能
+    // 他の15項目も mode: "fix" か "sort" を指定して追加
 };
 
-let playlist = [], qIdx = 0, mHp = 100, attempts = 0, currentQ = null;
+let playlist = [], qIdx = 0, currentQ = null, userAns = [], attempts = 0, selectedWrongWord = null;
 
-// 初期化
 const grid = document.getElementById('grammar-grid');
 Object.keys(db).forEach(k => {
     const d = document.createElement('div');
@@ -97,8 +99,11 @@ Object.keys(db).forEach(k => {
 
 function initGame() {
     const sel = document.querySelectorAll('.opt.selected');
-    if(!sel.length) return alert("文法を選んでね！");
-    sel.forEach(o => playlist.push(...db[o.dataset.key].q));
+    if(!sel.length) return alert("文法を選択してください！");
+    sel.forEach(o => {
+        const category = db[o.dataset.key];
+        category.q.forEach(q => { q.mode = category.mode; playlist.push(q); });
+    });
     playlist.sort(() => Math.random() - 0.5);
     document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('game-screen').style.display = 'block';
@@ -106,14 +111,52 @@ function initGame() {
 }
 
 function loadQuest() {
-    if(qIdx >= playlist.length) return alert("全問クリア！");
+    if(qIdx >= playlist.length) { alert("全問クリア！"); location.reload(); return; }
     currentQ = playlist[qIdx];
     attempts = 0;
+    userAns = [];
+    selectedWrongWord = null;
     document.getElementById('ja-text').innerText = "和訳：" + currentQ.ja;
-    document.getElementById('msg-box').innerHTML = "【STEP 1】<br>間違いの単語をタップして！";
-    document.getElementById('input-zone').style.display = 'none';
-    document.getElementById('type-input').value = "";
-    
+    document.getElementById('fix-ui').style.display = "none";
+    document.getElementById('sort-ui').style.display = "none";
+    document.getElementById('input-zone').style.display = "none";
+
+    if(currentQ.mode === "sort") {
+        document.getElementById('msg-box').innerText = "【並び替え】カードを正しい順にタップして！";
+        document.getElementById('sort-ui').style.display = "block";
+        renderSort();
+    } else {
+        document.getElementById('msg-box').innerText = "【スペル修正】間違いの単語をタップして直して！";
+        document.getElementById('fix-ui').style.display = "block";
+        renderFix();
+    }
+}
+
+function renderSort() {
+    const pool = document.getElementById('card-pool');
+    const ans = document.getElementById('answer-area');
+    pool.innerHTML = ""; ans.innerHTML = "";
+    [...currentQ.a].sort(() => Math.random() - 0.5).forEach(w => {
+        const card = document.createElement('div');
+        card.className = 'word-card'; card.innerText = w;
+        card.onclick = () => {
+            userAns.push(w);
+            card.classList.add('used');
+            const ac = document.createElement('div');
+            ac.className = 'word-card answer-word'; ac.innerText = w;
+            ans.appendChild(ac);
+        };
+        pool.appendChild(card);
+    });
+}
+
+function resetSort() {
+    userAns = [];
+    document.getElementById('answer-area').innerHTML = "";
+    document.querySelectorAll('.word-card').forEach(c => c.classList.remove('used'));
+}
+
+function renderFix() {
     const area = document.getElementById('sentence-area');
     area.innerHTML = "";
     currentQ.s.forEach(w => {
@@ -121,12 +164,12 @@ function loadQuest() {
         d.className = 'word-unit'; d.innerText = w;
         d.onclick = () => {
             if(w === currentQ.t) {
+                document.querySelectorAll('.word-unit').forEach(u => u.classList.remove('selected'));
                 d.classList.add('selected');
-                document.getElementById('msg-box').innerHTML = `「${w}」をどう直す？<br>正しい綴りを下に入力して！`;
+                selectedWrongWord = w;
                 document.getElementById('input-zone').style.display = 'block';
                 document.getElementById('type-input').focus();
-            } else {
-                document.getElementById('msg-box').innerHTML = "それは正しい単語だよ！<br>他を探してみて。";
+                document.getElementById('msg-box').innerText = `「${w}」をどう直す？`;
             }
         };
         area.appendChild(d);
@@ -134,19 +177,25 @@ function loadQuest() {
 }
 
 function submitAttack() {
-    const val = document.getElementById('type-input').value.trim().toLowerCase();
-    const correctVal = currentQ.a.toLowerCase();
-    
-    if(val === correctVal || (currentQ.a === "(削除)" && val === "")) {
-        confetti({particleCount: 100});
-        showExp("✨ 正解！", currentQ.e);
+    let isCorrect = false;
+    if(currentQ.mode === "sort") {
+        isCorrect = JSON.stringify(userAns) === JSON.stringify(currentQ.a);
+    } else {
+        const val = document.getElementById('type-input').value.trim().toLowerCase();
+        isCorrect = (selectedWrongWord === currentQ.t && (val === currentQ.a.toLowerCase() || (currentQ.a === "(削除)" && val === "")));
+    }
+
+    if(isCorrect) {
+        confetti({particleCount: 150});
+        showExp("✨ GREAT HIT!", currentQ.e);
     } else {
         attempts++;
         if(attempts < 2) {
-            document.getElementById('msg-box').innerHTML = "おっと、綴りが違うみたい！<br>もう一回チャンスがあるぞ！";
-            document.getElementById('type-input').value = "";
+            document.getElementById('msg-box').innerText = "MISS! どこかが違うぞ、もう一度！";
+            if(currentQ.mode === "sort") resetSort();
         } else {
-            showExp("💀 ミス！", `2回間違えました。正解は「${currentQ.a}」です。<br>${currentQ.e}`);
+            const collectStr = currentQ.mode === "sort" ? currentQ.a.join(" ") : currentQ.a;
+            showExp("💀 FAILED...", `正解は: ${collectStr}<br>${currentQ.e}`);
         }
     }
 }
@@ -159,8 +208,7 @@ function showExp(res, text) {
 
 function closeExp() {
     document.getElementById('exp-layer').style.display = 'none';
-    qIdx++;
-    loadQuest();
+    qIdx++; loadQuest();
 }
 </script>
 </body>
