@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Quest - 間違い探しRPG</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --rpg-dark: #1a1a2e; --rpg-blood: #e94560; --rpg-grass: #0f3460; --rpg-text: #e2e2e2; }
+        body { font-family: 'Courier New', sans-serif; background: #000; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; }
+        
+        #game-container { width: 100%; max-width: 600px; background: var(--rpg-dark); border: 4px solid #fff; border-radius: 10px; overflow: hidden; }
+        
+        /* ステータス */
+        .status-bar { padding: 10px; background: #000; display: flex; justify-content: space-between; border-bottom: 2px solid #fff; }
+        
+        /* バトルフィールド */
+        #battle-field { height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #16213e; position: relative; }
+        #monster-sprite { font-size: 70px; transition: transform 0.2s; }
+        .hp-bar { width: 200px; height: 12px; background: #444; border: 2px solid #fff; margin-top: 5px; }
+        #m-hp-fill { height: 100%; background: var(--rpg-blood); width: 100%; transition: 0.3s; }
+
+        /* メッセージ */
+        #msg-window { height: 60px; background: #000; padding: 10px; font-size: 1rem; border-top: 2px solid #fff; display: flex; align-items: center; justify-content: center; text-align: center; }
+
+        /* 問題エリア（間違い探し） */
+        #quiz-area { padding: 20px; background: #0f3460; min-height: 220px; }
+        .ja-hint { color: #f9ed69; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; }
+        
+        .word-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+        .word-node { 
+            padding: 8px 12px; background: #16213e; border: 1px solid #fff; border-radius: 5px; 
+            cursor: pointer; font-size: 1.2rem; transition: 0.2s;
+        }
+        .word-node:hover { background: #e94560; }
+        
+        /* 修正選択肢 */
+        #fix-menu { display: none; margin-top: 20px; border-top: 1px dashed #fff; padding-top: 15px; }
+        .fix-btn { padding: 10px 20px; margin: 5px; background: #000; color: white; border: 2px solid #fff; cursor: pointer; }
+        .fix-btn:hover { background: #e94560; }
+
+        .shake { animation: shake 0.3s; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(5px)} 75%{transform:translateX(-5px)} }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="status-bar">
+        <div>勇者 LV <span id="lv">1</span></div>
+        <div>HP: <span id="hp">50</span></div>
+    </div>
+
+    <div id="battle-field">
+        <div id="m-name" style="font-weight:bold; margin-bottom:5px;">ERROR SLIME</div>
+        <div id="monster-sprite">👁️‍🗨️</div>
+        <div class="hp-bar"><div id="m-hp-fill"></div></div>
+    </div>
+
+    <div id="msg-window">モンスターの呪文を解読せよ！</div>
+
+    <div id="quiz-area">
+        <div id="start-screen" style="text-align:center;">
+            <button class="fix-btn" style="font-size:1.5rem;" onclick="startBattle()">冒険を開始する</button>
+        </div>
+        
+        <div id="battle-screen" style="display:none;">
+            <div class="ja-hint" id="ja-text"></div>
+            <p>↓間違いをタッチして攻撃！</p>
+            <div id="sentence-box" class="word-container"></div>
+            
+            <div id="fix-menu">
+                <p>どう修正する？</p>
+                <div id="fix-options"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 問題データ：間違いを含んだ文、間違いの単語、正しい単語、ダミー
+const quizData = [
+    {ja:"この手紙は健によって書かれました。", wrongSen:["this", "letter", "was", "wrote", "by", "ken", "."], target:"wrote", correct:"written", dummys:["writing", "write"]},
+    {ja:"英語は多くの国で話されています。", wrongSen:["english", "is", "speak", "in", "many", "countries", "."], target:"speak", correct:"spoken", dummys:["speaks", "speaking"]},
+    {ja:"私は3年間ずっとテニスをしています。", wrongSen:["i", "have", "play", "tennis", "for", "three", "years", "."], target:"play", correct:"played", dummys:["playing", "plays"]},
+    {ja:"彼がどこに住んでいるか知っていますか？", wrongSen:["do", "you", "know", "where", "does", "he", "live", "?"], target:"does", correct:"(削除)", dummys:["did", "is"]},
+    {ja:"もし私が鳥なら、飛んでいくのに。", wrongSen:["if", "i", "am", "a", "bird", ",", "i", "would", "fly", "."], target:"am", correct:"were", dummys:["was", "are"]}
+];
+
+let mHp = 100, pHp = 50, qIndex = 0;
+let selectedWord = "";
+
+function startBattle() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('battle-screen').style.display = 'block';
+    loadQuest();
+}
+
+function loadQuest() {
+    const q = quizData[Math.floor(Math.random() * quizData.length)];
+    document.getElementById('ja-text').innerText = "和訳：「" + q.ja + "」";
+    document.getElementById('fix-menu').style.display = 'none';
+    document.getElementById('msg-window').innerText = "間違いを指摘せよ！";
+    
+    const box = document.getElementById('sentence-box');
+    box.innerHTML = "";
+    
+    q.wrongSen.forEach(word => {
+        const span = document.createElement('div');
+        span.className = 'word-node';
+        span.innerText = word;
+        span.onclick = () => selectWord(word, q);
+        box.appendChild(span);
+    });
+}
+
+function selectWord(word, q) {
+    selectedWord = word;
+    if(word === q.target) {
+        document.getElementById('msg-window').innerText = `「${word}」が怪しい！どう直す？`;
+        showFixMenu(q);
+    } else {
+        pHp -= 5;
+        document.getElementById('hp').innerText = pHp;
+        document.getElementById('msg-window').innerText = "そこは間違っていない！反撃を受けた！";
+        if(pHp <= 0) alert("勇者はたおれた...");
+    }
+}
+
+function showFixMenu(q) {
+    const menu = document.getElementById('fix-menu');
+    const options = document.getElementById('fix-options');
+    menu.style.display = 'block';
+    options.innerHTML = "";
+    
+    const choices = [q.correct, ...q.dummys].sort(() => Math.random() - 0.5);
+    choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'fix-btn';
+        btn.innerText = choice;
+        btn.onclick = () => handleAttack(choice === q.correct);
+        options.appendChild(btn);
+    });
+}
+
+function handleAttack(isCorrect) {
+    if(isCorrect) {
+        mHp -= 34;
+        document.getElementById('monster-sprite').classList.add('shake');
+        document.getElementById('msg-window').innerText = "クリティカルヒット！呪文を修正した！";
+        confetti({ particleCount: 100, spread: 70 });
+        setTimeout(() => {
+            document.getElementById('monster-sprite').classList.remove('shake');
+            if(mHp <= 0) {
+                alert("モンスターを浄化した！");
+                location.reload();
+            } else {
+                loadQuest();
+            }
+            updateM();
+        }, 1000);
+    } else {
+        pHp -= 10;
+        document.getElementById('hp').innerText = pHp;
+        document.getElementById('msg-window').innerText = "修正に失敗！手痛い反撃！";
+    }
+}
+
+function updateM() {
+    document.getElementById('m-hp-fill').style.width = mHp + "%";
+}
+</script>
+</body>
+</html>
