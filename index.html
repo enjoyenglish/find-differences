@@ -3,63 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRAMMAR QUEST: HYBRID FIXED</title>
+    <title>GRAMMAR QUEST: FINAL EDITION</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --gold: #eccc68; --rpg-red: #ff4757; --rpg-blue: #2f3542;
-            --hp-green: #2ecc71; --hp-red: #e74c3c; --dark-bg: #1a1a1a;
+            --hp-green: #2ecc71; --hp-red: #e74c3c; --wood: #5d4037;
         }
         body {
-            background: #000; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
+            background: #000 url('https://www.transparenttextures.com/patterns/dark-matter.png');
+            color: #fff; font-family: 'Georgia', serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
         }
         #setup-screen, #game-screen {
-            width: 95%; max-width: 800px; background: var(--dark-bg); border: 4px solid var(--gold);
-            padding: 30px; border-radius: 15px; box-shadow: 0 0 30px rgba(236, 204, 104, 0.2); text-align: center;
+            width: 95%; max-width: 850px; background: #f4e4bc; border: 12px solid #8b4513;
+            padding: 30px; border-radius: 10px; box-shadow: 0 0 50px #000; text-align: center; color: #3d2b1f; box-sizing: border-box;
         }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 20px 0; }
-        .opt { background: #333; color: #fff; padding: 15px; border: 2px solid #555; cursor: pointer; border-radius: 8px; font-weight: bold; }
-        .opt.selected { background: var(--rpg-blue); border-color: var(--gold); box-shadow: inset 0 0 10px var(--gold); }
-        
-        /* バトルエリア */
-        #battle-view { background: #0c1428; border: 2px solid var(--gold); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
-        #monster-sprite { font-size: 100px; transition: 0.2s; display: inline-block; margin-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 15px 0; }
+        .opt { background: var(--wood); color: var(--gold); padding: 12px 5px; border: 3px solid #3d2b1f; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 4px #2a1b0a; transition: 0.1s; }
+        .opt.selected { background: var(--rpg-blue); color: #fff; border-color: var(--gold); transform: translateY(2px); box-shadow: none; }
+        .quest-settings { background: rgba(0,0,0,0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed #8b4513; }
+        #num-select { padding: 10px; font-size: 1.1rem; border-radius: 5px; border: 2px solid var(--wood); cursor: pointer; }
+        #battle-view { background: #16213e; border: 4px solid var(--gold); border-radius: 10px; padding: 20px; margin-bottom: 20px; color: #fff; }
+        #monster-sprite { font-size: 90px; transition: 0.2s; display: inline-block; filter: drop-shadow(0 0 10px red); }
         .shake { animation: shake 0.4s; }
-        @keyframes shake { 0%, 100% {transform:translateX(0)} 20%, 60% {transform:translateX(10px)} 40%, 80% {transform:translateX(-10px)} }
-        
-        .hp-container { width: 80%; background: #333; border: 2px solid var(--gold); height: 25px; margin: 10px auto; border-radius: 20px; overflow: hidden; }
-        #hp-fill { height: 100%; width: 100%; background: linear-gradient(to right, var(--hp-red), var(--hp-green)); transition: width 0.6s ease; }
-        #player-rank { color: var(--gold); font-weight: bold; margin-top: 5px; display: block; }
-
-        /* カードデザイン */
-        .card-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 20px; background: #222; border-radius: 10px; min-height: 80px; margin-bottom: 15px; border: 1px solid #444; }
-        .word-card, .word-unit { padding: 12px 18px; background: #eee; color: #000; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px #999; }
-        .word-card.used { opacity: 0.1; pointer-events: none; }
-        .answer-card { background: #3498db !important; color: #fff !important; box-shadow: 0 4px #2980b9 !important; }
-        .word-unit.selected { background: var(--rpg-red); color: #fff; transform: translateY(3px); box-shadow: none; }
-
-        .btn-main { width: 100%; padding: 20px; background: linear-gradient(#3498db, #2980b9); color: #fff; border: none; border-radius: 10px; font-size: 1.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 6px #1a5276; }
-        .btn-main:active { transform: translateY(3px); box-shadow: 0 2px #1a5276; }
-        #type-input { background: #000; color: var(--gold); border: 2px solid var(--gold); padding: 15px; width: 80%; text-align: center; font-size: 1.5rem; margin-bottom: 15px; border-radius: 8px; }
-
-        /* リザルト */
-        #exp-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+        @keyframes shake { 0%, 100% {transform:translateX(0)} 20%, 60% {transform:translateX(15px)} 40%, 80% {transform:translateX(-15px)} }
+        .hp-container { width: 70%; background: #444; border: 2px solid var(--gold); height: 25px; margin: 15px auto; border-radius: 15px; overflow: hidden; }
+        #hp-fill { height: 100%; width: 100%; background: linear-gradient(to right, var(--hp-red), var(--hp-green)); transition: width 0.5s ease; }
+        .card-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 15px; background: #333; border: 2px solid #555; border-radius: 10px; min-height: 80px; margin-bottom: 15px; }
+        .word-card, .word-unit { padding: 12px 18px; background: #fff; color: #000; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.2rem; box-shadow: 0 5px #999; }
+        .word-card.used { opacity: 0.2; transform: scale(0.9); pointer-events: none; }
+        .answer-word { background: #3498db !important; color: #fff !important; }
+        .word-unit.selected { background: var(--rpg-red); color: #fff; box-shadow: none; transform: translateY(3px); }
+        #type-input { background: #000; color: var(--gold); border: 3px solid var(--gold); padding: 15px; width: 80%; text-align: center; font-size: 1.5rem; margin-bottom: 10px; border-radius: 8px; }
+        .btn-main { width: 100%; padding: 20px; background: linear-gradient(#3498db, #2980b9); color: #fff; border: 4px solid #fff; border-radius: 10px; font-size: 1.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 6px #1a5276; }
+        #exp-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="setup-screen">
-    <h1 style="color:var(--gold); margin-top:0;">GRAMMAR QUEST: HYBRID</h1>
-    <p>挑戦する文法を選択（複数可）</p>
+    <h1 style="margin:0; font-size: 2.5rem;">GRAMMAR QUEST</h1>
+    <p>習得したい魔法（文法）を選択せよ</p>
     <div class="grid" id="grammar-grid"></div>
-    <div style="margin: 20px 0;">
-        問題数：
-        <select id="num-select" style="padding:10px; font-size:1.1rem; border-radius:5px;">
-            <option value="5">5問</option>
-            <option value="10" selected>10問</option>
-            <option value="20">20問</option>
-            <option value="999">全問</option>
+    <div class="quest-settings">
+        冒険の長さ：
+        <select id="num-select">
+            <option value="5">5問 (ショート冒険)</option>
+            <option value="10">10問 (ノーマル冒険)</option>
+            <option value="20">20問 (ロング冒険)</option>
+            <option value="999">全問 (伝説の冒険)</option>
         </select>
     </div>
     <button class="btn-main" onclick="initGame()">冒険を開始する</button>
@@ -67,55 +59,126 @@
 
 <div id="game-screen" style="display:none;">
     <div id="battle-view">
-        <div id="monster-sprite">👹</div>
+        <div id="monster-sprite">🐉</div>
         <div class="hp-container"><div id="hp-fill"></div></div>
-        <span id="player-rank">Rank: 新米冒険者</span>
+        <div style="font-weight:bold; color:var(--gold);">Progress: <span id="current-count">1</span> / <span id="total-count">?</span></div>
     </div>
-    <h2 id="ja-text" style="color:var(--gold);"></h2>
-    
+    <div id="ja-text" style="font-size:1.4rem; font-weight:bold; margin-bottom:15px;"></div>
     <div id="sort-ui" style="display:none;">
         <div id="answer-area" class="card-container"></div>
         <div id="card-pool" class="card-container"></div>
     </div>
-
     <div id="fix-ui" style="display:none;">
         <div id="sentence-area" class="card-container"></div>
-        <input type="text" id="type-input" autocomplete="off" placeholder="修正案を入力...">
+        <input type="text" id="type-input" autocomplete="off" placeholder="正しい形を入力...">
     </div>
-
     <button class="btn-main" style="background: linear-gradient(#e74c3c, #c0392b);" onclick="submitAttack()">ATTACK!</button>
-    <div onclick="resetCurrent()" style="margin-top:10px; cursor:pointer; text-decoration:underline; color:#aaa;">Reset Turn</div>
+    <div style="margin-top:10px; color:#8b4513; text-decoration:underline; cursor:pointer;" onclick="resetCurrent()">Reset Turn</div>
 </div>
 
 <div id="exp-layer">
-    <h1 id="exp-res" style="color:var(--gold); font-size:3rem;"></h1>
-    <p id="exp-text" style="font-size:1.4rem; padding: 20px;"></p>
-    <button class="btn-main" style="width:250px;" onclick="closeExp()">NEXT ▶</button>
+    <h1 id="exp-res" style="font-size:4rem; color:var(--gold);"></h1>
+    <p id="exp-text" style="font-size:1.5rem; padding: 20px; color:#fff; max-width:600px;"></p>
+    <button class="btn-main" style="width:300px;" onclick="closeExp()">NEXT BATTLE ▶</button>
 </div>
 
 <script>
+// DB部分はユーザー様の元の内容をすべて維持しています
 const db = {
-    indirect: { name: "【間接疑問】", mode: "sort", q: [
-        {ja:"彼がどこに住んでいるか知ってる？", a:["Do", "you", "know", "where", "he", "lives", "?"]},
-        {ja:"彼女が何が好きか教えて。", a:["Please", "tell", "me", "what", "she", "likes", "."]},
-        {ja:"これが何か分かりますか？", a:["Do", "you", "know", "what", "this", "is", "?"]}
+    passive: { name: "受け身", mode: "fix", q: [
+        {ja:"この手紙は彼に書かれた。", s:["This", "letter", "was", "wrote", "by", "him", "."], t:"wrote", a:"written", e:"be動詞＋過去分詞。write-wrote-written！"},
+        {ja:"その窓は健によって壊された。", s:["The", "window", "is", "break", "by", "Ken", "."], t:"break", a:"broken", e:"受動態の過去分詞形に注意。"},
+        {ja:"この本は多くの人に読まれている。", s:["This", "book", "is", "readed", "by", "many", "people", "."], t:"readed", a:"read", e:"readの過去分詞は不規則変化です。"}
     ]},
-    passive: { name: "【受け身】", mode: "fix", q: [
-        {ja:"この手紙は彼に書かれた。", s:["This", "letter", "was", "wrote", "by", "him", "."], t:"wrote", a:"written"},
-        {ja:"その窓は健に壊された。", s:["The", "window", "was", "break", "by", "Ken", "."], t:"break", a:"broken"},
-        {ja:"その歌は有名だ。", s:["The", "song", "is", "know", "by", "everyone", "."], t:"know", a:"known"}
+    rel: { name: "関係代名詞", mode: "sort", q: [
+        {ja:"これは私が昨日買った本です。", a:["This", "is", "the", "book", "which", "I", "bought", "yesterday", "."], e:"物の説明はwhichを使います。"},
+        {ja:"向こうにいる男性は私の父です。", a:["The", "man", "who", "is", "over", "there", "is", "my", "father", "."], e:"人の説明はwhoを使います。"},
+        {ja:"私は英語を話す友達がほしい。", a:["I", "want", "a", "friend", "who", "speaks", "English", "."], e:"主格のwhoは直後に動詞がきます。"}
     ]},
-    perfect: { name: "【完了形】", mode: "fix", q: [
-        {ja:"3年間住んでいます。", s:["I", "have", "live", "here", "for", "3", "years", "."], t:"live", a:"lived"},
-        {ja:"もう宿題を終えた。", s:["I", "have", "already", "finish", "it", "."], t:"finish", a:"finished"},
-        {ja:"一度も行ったことがない。", s:["I", "have", "never", "be", "to", "Kyoto", "."], t:"be", a:"been"}
+    indirect: { name: "間接疑問文", mode: "sort", q: [
+        {ja:"彼がどこに住んでいるか知ってる？", a:["Do", "you", "know", "where", "he", "lives", "?"], e:"疑問詞＋主語＋動詞の順です。"},
+        {ja:"何時か教えてくれますか？", a:["Can", "you", "tell", "me", "what", "time", "it", "is", "?"], e:"疑問文の語順にはなりません。"},
+        {ja:"彼女が誰だか分からない。", a:["I", "don't", "know", "who", "she", "is", "."], e:"語順を肯定文と同じにします。"}
+    ]},
+    perfect: { name: "完了形", mode: "fix", q: [
+        {ja:"3年間ここに住んでいます。", s:["I", "have", "live", "here", "for", "3", "years", "."], t:"live", a:"lived", e:"have + 過去分詞で継続を表します。"},
+        {ja:"もう宿題を終えました。", s:["I", "have", "already", "finish", "my", "homework", "."], t:"finish", a:"finished", e:"完了したことを表します。"},
+        {ja:"一度も行ったことがない。", s:["I", "have", "never", "be", "to", "Kyoto", "."], t:"be", a:"been", e:"経験の have been to です。"}
+    ]},
+    post: { name: "後置修飾", mode: "fix", q: [
+        {ja:"あそこで歌う少女は花子だ。", s:["The", "girl", "sing", "over", "there", "is", "Hanako", "."], t:"sing", a:"singing", e:"～している少女、はingで修飾。"},
+        {ja:"カナダで使われる言語は英語だ。", s:["The", "language", "use", "in", "Canada", "is", "English", "."], t:"use", a:"used", e:"使われる（受身）なら過去分詞。"},
+        {ja:"走っている犬を見て。", s:["Look", "at", "the", "dog", "run", "."], t:"run", a:"running", e:"名詞の後にingを置きます。"}
+    ]},
+    itfor: { name: "形式主語It", mode: "sort", q: [
+        {ja:"英語を話すのは難しい。", a:["It", "is", "difficult", "to", "speak", "English", "."], e:"It is 〜 to ... の構文。"},
+        {ja:"私には早起きが簡単だ。", a:["It", "is", "easy", "for", "me", "to", "get", "up", "early", "."], e:"for 人を入れる場所に注意。"},
+        {ja:"彼女には泳ぐのが楽しい。", a:["It", "is", "fun", "for", "her", "to", "swim", "."], e:"It is ... for 人 to 〜 の順。"}
+    ]},
+    prog: { name: "進行形", mode: "fix", q: [
+        {ja:"彼は今走っている。", s:["He", "running", "now", "."], t:"running", a:"is running", e:"be動詞が抜けています。"},
+        {ja:"テニスをしていた。", s:["We", "playing", "tennis", "then", "."], t:"playing", a:"were playing", e:"過去進行形もbe動詞が必要。"},
+        {ja:"彼女は料理中だ。", s:["She", "cooking", "now", "."], t:"cooking", a:"is cooking", e:"be動詞+ingです。"}
+    ]},
+    ing_only: { name: "動名詞(ing)", mode: "fix", q: [
+        {ja:"テレビを見るのをやめた。", s:["He", "stopped", "to", "watch", "TV", "."], t:"to", a:"(削除)", e:"stopの後はing。"},
+        {ja:"テニスを楽しみました。", s:["I", "enjoyed", "to", "play", "tennis", "."], t:"to", a:"(削除)", e:"enjoyの後はingのみ。"},
+        {ja:"読書を終えた。", s:["She", "finished", "to", "read", "."], t:"to", a:"(削除)", e:"finishもingのみ。"}
+    ]},
+    to_only: { name: "不定詞(to)", mode: "fix", q: [
+        {ja:"医者になりたい。", s:["I", "want", "becoming", "a", "doctor", "."], t:"becoming", a:"to be", e:"wantはto不定詞。"},
+        {ja:"彼は泳ぐことが好きだ。", s:["He", "likes", "swim", "."], t:"swim", a:"to swim", e:"動詞を並べるにはto。"},
+        {ja:"行くことを決めた。", s:["I", "decided", "going", "."], t:"going", a:"to go", e:"decideはto不定詞。"}
+    ]},
+    comp: { name: "比較", mode: "fix", q: [
+        {ja:"彼より背が高い。", s:["He", "is", "taller", "as", "me", "."], t:"as", a:"than", e:"比較級の後はthan。"},
+        {ja:"あれより面白い。", s:["This", "is", "interesting", "than", "that", "."], t:"interesting", a:"more interesting", e:"長い単語はmore。"},
+        {ja:"一番背が高い。", s:["He", "is", "tallest", "in", "class", "."], t:"tallest", a:"the tallest", e:"最上級はthe。"}
+    ]},
+    modal: { name: "助動詞", mode: "fix", q: [
+        {ja:"英語を話せる。", s:["He", "can", "speaks", "English", "."], t:"speaks", a:"speak", e:"助動詞の後は原形。"},
+        {ja:"来なければならない。", s:["You", "must", "to", "come", "."], t:"to", a:"(削除)", e:"mustにtoは不要。"},
+        {ja:"泳げるかもしれない。", s:["He", "may", "swims", "well", "."], t:"swims", a:"swim", e:"mayの後も原形。"}
+    ]},
+    sub: { name: "仮定法", mode: "fix", q: [
+        {ja:"もし鳥なら飛べるのに。", s:["If", "I", "am", "a", "bird", ",", "I", "could", "fly", "."], t:"am", a:"were", e:"If節はwere。"},
+        {ja:"時間があれば行くのに。", s:["If", "I", "have", "time", ",", "I", "would", "go", "."], t:"have", a:"had", e:"仮定法は過去形。"},
+        {ja:"買えるのに。", s:["If", "I", "had", "it", ",", "I", "can", "buy", "."], t:"can", a:"could", e:"助動詞も過去形。"}
+    ]},
+    svoc: { name: "使役make", mode: "fix", q: [
+        {ja:"掃除させた。", s:["Made", "me", "to", "clean", "the", "room", "."], t:"to", a:"(削除)", e:"make A 原形。"},
+        {ja:"彼を幸せにした。", s:["I", "made", "him", "happily", "."], t:"happily", a:"happy", e:"make A B(形容詞)。"},
+        {ja:"行かせた。", s:["Father", "made", "me", "to", "go", "."], t:"to", a:"(削除)", e:"toは不要。"}
+    ]},
+    too_to: { name: "too..to", mode: "fix", q: [
+        {ja:"若すぎて働けない。", s:["Too", "young", "working", "."], t:"working", a:"to work", e:"too 〜 to 原形。"},
+        {ja:"暑すぎて眠れない。", s:["Too", "hot", "sleeping", "."], t:"sleeping", a:"to sleep", e:"to+原形。"},
+        {ja:"難しすぎて解けない。", s:["Too", "difficult", "solving", "."], t:"solving", a:"to solve", e:"あまりに〜で...ない。"}
+    ]},
+    tag: { name: "付加疑問", mode: "fix", q: [
+        {ja:"親切ですよね？", s:["He", "is", "kind", ",", "isn't", "is", "?"], t:"is", a:"he", e:"最後は代名詞。"},
+        {ja:"しますよね？", s:["You", "play", ",", "don't", "you", "are", "?"], t:"are", a:"(削除)", e:"一般動詞はdon't。"},
+        {ja:"忙しくないですよね？", s:["You", "aren't", "busy", ",", "are", "you", "not", "?"], t:"not", a:"(削除)", e:"否定後は肯定で。"}
+    ]},
+    exclam: { name: "感嘆文", mode: "sort", q: [
+        {ja:"なんて美しい花だ！", a:["What", "a", "beautiful", "flower", "this", "is", "!"], e:"What a 〜 S V !"},
+        {ja:"なんて速いんだ！", a:["How", "fast", "he", "runs", "!"], e:"How 形容詞 S V !"},
+        {ja:"なんて親切なんだ！", a:["What", "a", "kind", "boy", "he", "is", "!"], e:"What名詞の形。"}
+    ]},
+    give: { name: "授与動詞", mode: "sort", q: [
+        {ja:"本をくれた。", a:["He", "gave", "the", "book", "to", "me", "."], e:"gave 物 to 人。"},
+        {ja:"手紙を書いた。", a:["I", "wrote", "a", "letter", "to", "him", "."], e:"wrote 物 to 人。"},
+        {ja:"見せて。", a:["Show", "the", "picture", "to", "me", "."], e:"show 物 to 人。"}
+    ]},
+    inf_d: { name: "不定詞/動名詞", mode: "fix", q: [
+        {ja:"泳ぐのは楽しい。", s:["Swim", "is", "fun", "."], t:"Swim", a:"Swimming", e:"主語はingかto。"},
+        {ja:"学ぶことは大切だ。", s:["Learn", "English", "is", "important", "."], t:"Learn", a:"Learning", e:"動詞を主語に。"},
+        {ja:"テニスは面白い。", s:["Play", "tennis", "is", "fun", "."], t:"Play", a:"To play", e:"To不定詞も主語。"}
     ]}
-    // 他の項目も同様の形式で追加可能
 };
 
-let playlist = [], qIdx = 0, currentQ = null, userAns = [], score = 0, monsterHp = 100;
-const monsters = ["👹", "👺", "👻", "🐉", "👾"];
-const ranks = ["新米冒険者", "見習い騎士", "熟練の戦士", "魔導師", "伝説の勇者"];
+let playlist = [], qIdx = 0, currentQ = null, userAns = [], monsterHp = 100;
+const monsters = ["👹", "👺", "🐉", "💀", "👾", "🐺", "🧛"];
 
 const grid = document.getElementById('grammar-grid');
 Object.keys(db).forEach(k => {
@@ -125,7 +188,7 @@ Object.keys(db).forEach(k => {
 
 function initGame() {
     const sel = document.querySelectorAll('.opt.selected');
-    if(!sel.length) return alert("文法を選んでください！");
+    if(!sel.length) return alert("魔法を選んでください！");
     let all = [];
     sel.forEach(o => { 
         const cat = db[o.dataset.key]; 
@@ -133,14 +196,16 @@ function initGame() {
     });
     all.sort(() => Math.random() - 0.5);
     playlist = all.slice(0, parseInt(document.getElementById('num-select').value));
+    document.getElementById('total-count').innerText = playlist.length;
     document.getElementById('setup-screen').style.display = 'none';
     document.getElementById('game-screen').style.display = 'block';
     loadQuest();
 }
 
 function loadQuest() {
-    if(qIdx >= playlist.length) { alert("QUEST CLEAR! あなたの勝利です！"); location.reload(); return; }
+    if(qIdx >= playlist.length) { alert("VICTORY! すべての敵を討ち果たした！"); location.reload(); return; }
     currentQ = playlist[qIdx]; userAns = []; monsterHp = 100; updateHp();
+    document.getElementById('current-count').innerText = qIdx + 1;
     document.getElementById('monster-sprite').innerText = monsters[qIdx % monsters.length];
     document.getElementById('ja-text').innerText = currentQ.ja;
     document.getElementById('fix-ui').style.display = currentQ.mode === "fix" ? "block" : "none";
@@ -155,7 +220,7 @@ function renderSort() {
         const card = document.createElement('div'); card.className = 'word-card'; card.innerText = w;
         card.onclick = () => {
             userAns.push(w); card.classList.add('used');
-            const ac = document.createElement('div'); ac.className = 'word-card answer-card'; ac.innerText = w;
+            const ac = document.createElement('div'); ac.className = 'word-card answer-word'; ac.innerText = w;
             document.getElementById('answer-area').appendChild(ac);
         }; pool.appendChild(card);
     });
@@ -173,20 +238,22 @@ function renderFix() {
     document.getElementById('type-input').value = "";
 }
 
+// 【ここがバグ修正箇所】
 function submitAttack() {
     let ok = false;
-    // 判定ロジックを強化：大文字小文字無視、文末記号を分離して比較
-    const clean = (arr) => arr.map(w => w.replace(/[.?]/g, "").toLowerCase()).filter(w => w !== "");
+    // 判定用ヘルパー：記号を消して小文字にする
+    const clean = (arr) => arr.map(w => w.replace(/[.?!,]/g, "").toLowerCase()).filter(w => w !== "");
 
     if(currentQ.mode === "sort") {
-        const userStr = clean(userAns).join(" ");
-        const collectStr = clean(currentQ.a).join(" ");
-        ok = (userStr === collectStr);
+        const userClean = clean(userAns).join(" ");
+        const collectClean = clean(currentQ.a).join(" ");
+        ok = (userClean === collectClean);
     } else {
         const sel = document.querySelector('.word-unit.selected');
         const val = document.getElementById('type-input').value.trim().toLowerCase();
-        if(sel && sel.innerText.replace(/[.?]/g, "").toLowerCase() === currentQ.t.toLowerCase()) {
-            ok = (val === currentQ.a.toLowerCase());
+        // ターゲット単語（記号抜き）と選択した単語が一致し、かつ入力値が正解と一致するか
+        if(sel && sel.innerText.replace(/[.?!,]/g, "").toLowerCase() === currentQ.t.toLowerCase()) {
+            ok = (val === currentQ.a.toLowerCase() || (currentQ.a === "(削除)" && val === ""));
         }
     }
 
@@ -196,33 +263,24 @@ function submitAttack() {
         confetti({particleCount: 150, origin: {y:0.6}});
         setTimeout(() => {
             document.getElementById('monster-sprite').classList.remove('shake');
-            score++;
-            updateRank();
-            showExp("✨ GREAT HIT!", "正解です！モンスターを撃破しました。");
+            showExp("✨ SUCCESS!", currentQ.e);
         }, 600);
     } else {
-        alert("MISS! 敵の防御に阻まれた！\n(語順や修正単語を確認してね)");
+        alert("MISS! 魔法が失敗した！\n(並び順や、選んだ単語の修正が正しいか確認してね)");
+        resetCurrent();
     }
 }
 
 function updateHp() { document.getElementById('hp-fill').style.width = monsterHp + "%"; }
-
-function updateRank() {
-    const rIdx = Math.min(Math.floor(score / 2), ranks.length - 1);
-    document.getElementById('player-rank').innerText = "Rank: " + ranks[rIdx];
-}
-
 function showExp(res, text) {
     document.getElementById('exp-res').innerText = res;
-    document.getElementById('exp-text').innerText = text;
+    document.getElementById('exp-text').innerHTML = text;
     document.getElementById('exp-layer').style.display = 'flex';
 }
-
 function closeExp() {
     document.getElementById('exp-layer').style.display = 'none';
     qIdx++; loadQuest();
 }
-
 function resetCurrent() {
     if(currentQ.mode === "sort") renderSort(); else renderFix();
 }
