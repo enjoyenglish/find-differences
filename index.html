@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRAMMAR QUEST: FINAL EDITION</title>
+    <title>GRAMMAR QUEST: ALL SKILLS</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -21,19 +21,24 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 15px 0; }
         .opt { background: var(--wood); color: var(--gold); padding: 12px 5px; border: 3px solid #3d2b1f; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 4px #2a1b0a; transition: 0.1s; }
         .opt.selected { background: var(--rpg-blue); color: #fff; border-color: var(--gold); transform: translateY(2px); box-shadow: none; }
+        
         .quest-settings { background: rgba(0,0,0,0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed #8b4513; }
         #num-select { padding: 10px; font-size: 1.1rem; border-radius: 5px; border: 2px solid var(--wood); cursor: pointer; }
+
         #battle-view { background: #16213e; border: 4px solid var(--gold); border-radius: 10px; padding: 20px; margin-bottom: 20px; color: #fff; }
         #monster-sprite { font-size: 90px; transition: 0.2s; display: inline-block; filter: drop-shadow(0 0 10px red); }
         .shake { animation: shake 0.4s; }
         @keyframes shake { 0%, 100% {transform:translateX(0)} 20%, 60% {transform:translateX(15px)} 40%, 80% {transform:translateX(-15px)} }
+
         .hp-container { width: 70%; background: #444; border: 2px solid var(--gold); height: 25px; margin: 15px auto; border-radius: 15px; overflow: hidden; }
         #hp-fill { height: 100%; width: 100%; background: linear-gradient(to right, var(--hp-red), var(--hp-green)); transition: width 0.5s ease; }
+
         .card-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 15px; background: #333; border: 2px solid #555; border-radius: 10px; min-height: 80px; margin-bottom: 15px; }
         .word-card, .word-unit { padding: 12px 18px; background: #fff; color: #000; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.2rem; box-shadow: 0 5px #999; }
         .word-card.used { opacity: 0.2; transform: scale(0.9); pointer-events: none; }
         .answer-word { background: #3498db !important; color: #fff !important; }
         .word-unit.selected { background: var(--rpg-red); color: #fff; box-shadow: none; transform: translateY(3px); }
+
         #type-input { background: #000; color: var(--gold); border: 3px solid var(--gold); padding: 15px; width: 80%; text-align: center; font-size: 1.5rem; margin-bottom: 10px; border-radius: 8px; }
         .btn-main { width: 100%; padding: 20px; background: linear-gradient(#3498db, #2980b9); color: #fff; border: 4px solid #fff; border-radius: 10px; font-size: 1.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 6px #1a5276; }
         #exp-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -64,14 +69,17 @@
         <div style="font-weight:bold; color:var(--gold);">Progress: <span id="current-count">1</span> / <span id="total-count">?</span></div>
     </div>
     <div id="ja-text" style="font-size:1.4rem; font-weight:bold; margin-bottom:15px;"></div>
+    
     <div id="sort-ui" style="display:none;">
         <div id="answer-area" class="card-container"></div>
         <div id="card-pool" class="card-container"></div>
     </div>
+
     <div id="fix-ui" style="display:none;">
         <div id="sentence-area" class="card-container"></div>
         <input type="text" id="type-input" autocomplete="off" placeholder="正しい形を入力...">
     </div>
+
     <button class="btn-main" style="background: linear-gradient(#e74c3c, #c0392b);" onclick="submitAttack()">ATTACK!</button>
     <div style="margin-top:10px; color:#8b4513; text-decoration:underline; cursor:pointer;" onclick="resetCurrent()">Reset Turn</div>
 </div>
@@ -83,7 +91,6 @@
 </div>
 
 <script>
-// DB部分はユーザー様の元の内容をすべて維持しています
 const db = {
     passive: { name: "受け身", mode: "fix", q: [
         {ja:"この手紙は彼に書かれた。", s:["This", "letter", "was", "wrote", "by", "him", "."], t:"wrote", a:"written", e:"be動詞＋過去分詞。write-wrote-written！"},
@@ -238,10 +245,8 @@ function renderFix() {
     document.getElementById('type-input').value = "";
 }
 
-// 【ここがバグ修正箇所】
 function submitAttack() {
     let ok = false;
-    // 判定用ヘルパー：記号を消して小文字にする
     const clean = (arr) => arr.map(w => w.replace(/[.?!,]/g, "").toLowerCase()).filter(w => w !== "");
 
     if(currentQ.mode === "sort") {
@@ -251,7 +256,6 @@ function submitAttack() {
     } else {
         const sel = document.querySelector('.word-unit.selected');
         const val = document.getElementById('type-input').value.trim().toLowerCase();
-        // ターゲット単語（記号抜き）と選択した単語が一致し、かつ入力値が正解と一致するか
         if(sel && sel.innerText.replace(/[.?!,]/g, "").toLowerCase() === currentQ.t.toLowerCase()) {
             ok = (val === currentQ.a.toLowerCase() || (currentQ.a === "(削除)" && val === ""));
         }
@@ -266,7 +270,7 @@ function submitAttack() {
             showExp("✨ SUCCESS!", currentQ.e);
         }, 600);
     } else {
-        alert("MISS! 魔法が失敗した！\n(並び順や、選んだ単語の修正が正しいか確認してね)");
+        alert("MISS! 魔法が失敗した！");
         resetCurrent();
     }
 }
