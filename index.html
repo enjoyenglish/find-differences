@@ -3,60 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRAMMAR QUEST: ALL SKILLS</title>
+    <title>GRAMMAR QUEST: RPG EDITION</title>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --gold: #eccc68; --rpg-red: #ff4757; --rpg-blue: #2f3542;
             --hp-green: #2ecc71; --hp-red: #e74c3c; --wood: #5d4037;
+            --window-bg: #000080; /* 昔のRPG風の青いウィンドウ */
         }
         body {
-            background: #000 url('https://www.transparenttextures.com/patterns/dark-matter.png');
-            color: #fff; font-family: 'Georgia', serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
+            background: #111;
+            color: #fff;
+            /* 日本語はドットフォント、英数字はレトロゲーム風 */
+            font-family: 'DotGothic16', sans-serif;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
         }
         #setup-screen, #game-screen {
-            width: 95%; max-width: 850px; background: #f4e4bc; border: 12px solid #8b4513;
-            padding: 30px; border-radius: 10px; box-shadow: 0 0 50px #000; text-align: center; color: #3d2b1f; box-sizing: border-box;
+            width: 95%; max-width: 850px; 
+            background: var(--window-bg); 
+            border: 6px double var(--gold);
+            padding: 30px; border-radius: 4px; box-shadow: 0 0 0 4px #000, 0 0 20px #000;
+            text-align: center; box-sizing: border-box;
         }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 15px 0; }
-        .opt { background: var(--wood); color: var(--gold); padding: 12px 5px; border: 3px solid #3d2b1f; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 4px #2a1b0a; transition: 0.1s; }
-        .opt.selected { background: var(--rpg-blue); color: #fff; border-color: var(--gold); transform: translateY(2px); box-shadow: none; }
+        h1 { font-family: 'Press Start 2P', cursive; color: var(--gold); font-size: 1.5rem; text-shadow: 4px 4px #000; }
         
-        .quest-settings { background: rgba(0,0,0,0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed #8b4513; }
-        #num-select { padding: 10px; font-size: 1.1rem; border-radius: 5px; border: 2px solid var(--wood); cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 20px 0; }
+        .opt { background: #000; color: #fff; padding: 12px 5px; border: 3px solid #fff; cursor: pointer; font-weight: bold; transition: 0.1s; }
+        .opt.selected { background: var(--gold); color: #000; border-color: #fff; }
+        
+        .quest-settings { border: 2px solid #fff; padding: 15px; margin-bottom: 20px; background: rgba(0,0,0,0.5); }
+        #num-select { background: #000; color: #fff; border: 2px solid #fff; padding: 5px; font-family: 'DotGothic16'; }
 
-        #battle-view { background: #16213e; border: 4px solid var(--gold); border-radius: 10px; padding: 20px; margin-bottom: 20px; color: #fff; }
-        #monster-sprite { font-size: 90px; transition: 0.2s; display: inline-block; filter: drop-shadow(0 0 10px red); }
+        #battle-view { background: #000; border: 4px solid var(--gold); padding: 20px; margin-bottom: 20px; position: relative; }
+        #monster-sprite { font-size: 100px; display: inline-block; filter: drop-shadow(0 0 10px red); }
         .shake { animation: shake 0.4s; }
         @keyframes shake { 0%, 100% {transform:translateX(0)} 20%, 60% {transform:translateX(15px)} 40%, 80% {transform:translateX(-15px)} }
 
-        .hp-container { width: 70%; background: #444; border: 2px solid var(--gold); height: 25px; margin: 15px auto; border-radius: 15px; overflow: hidden; }
-        #hp-fill { height: 100%; width: 100%; background: linear-gradient(to right, var(--hp-red), var(--hp-green)); transition: width 0.5s ease; }
+        .hp-container { width: 80%; background: #333; border: 3px solid #fff; height: 20px; margin: 15px auto; overflow: hidden; }
+        #hp-fill { height: 100%; width: 100%; background: var(--hp-green); transition: width 0.5s ease; }
 
-        .card-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 15px; background: #333; border: 2px solid #555; border-radius: 10px; min-height: 80px; margin-bottom: 15px; }
-        .word-card, .word-unit { padding: 12px 18px; background: #fff; color: #000; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1.2rem; box-shadow: 0 5px #999; }
-        .word-card.used { opacity: 0.2; transform: scale(0.9); pointer-events: none; }
-        .answer-word { background: #3498db !important; color: #fff !important; }
-        .word-unit.selected { background: var(--rpg-red); color: #fff; box-shadow: none; transform: translateY(3px); }
+        .card-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 15px; background: rgba(255,255,255,0.1); border: 2px solid #fff; min-height: 80px; margin-bottom: 15px; }
+        .word-card, .word-unit { padding: 10px 15px; background: #fff; color: #000; border: 2px solid #000; cursor: pointer; font-weight: bold; font-family: 'Georgia', serif; font-size: 1.2rem; }
+        .word-card.used { opacity: 0; pointer-events: none; }
+        .answer-word { background: var(--gold) !important; }
+        .word-unit.selected { background: var(--rpg-red); color: #fff; }
 
-        #type-input { background: #000; color: var(--gold); border: 3px solid var(--gold); padding: 15px; width: 80%; text-align: center; font-size: 1.5rem; margin-bottom: 10px; border-radius: 8px; }
-        .btn-main { width: 100%; padding: 20px; background: linear-gradient(#3498db, #2980b9); color: #fff; border: 4px solid #fff; border-radius: 10px; font-size: 1.8rem; font-weight: bold; cursor: pointer; box-shadow: 0 6px #1a5276; }
-        #exp-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #type-input { background: #000; color: var(--gold); border: 3px solid #fff; padding: 10px; width: 80%; text-align: center; font-size: 1.5rem; margin-bottom: 10px; font-family: 'Georgia', serif; }
+        
+        .btn-main { width: 100%; padding: 15px; background: #000; color: #fff; border: 4px solid #fff; font-size: 1.5rem; font-family: 'DotGothic16'; cursor: pointer; }
+        .btn-main:hover { background: #fff; color: #000; }
+        .btn-main:active { transform: scale(0.98); }
+
+        #exp-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 200; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #exp-window { width: 80%; max-width: 600px; background: var(--window-bg); border: 4px double #fff; padding: 30px; }
     </style>
 </head>
 <body>
 
 <div id="setup-screen">
-    <h1 style="margin:0; font-size: 2.5rem;">GRAMMAR QUEST</h1>
-    <p>習得したい魔法（文法）を選択せよ</p>
+    <h1>GRAMMAR QUEST</h1>
+    <p>コマンド：修得したい魔法（文法）を選択せよ</p>
     <div class="grid" id="grammar-grid"></div>
     <div class="quest-settings">
         冒険の長さ：
         <select id="num-select">
-            <option value="5">5問 (ショート冒険)</option>
-            <option value="10">10問 (ノーマル冒険)</option>
-            <option value="20">20問 (ロング冒険)</option>
-            <option value="999">全問 (伝説の冒険)</option>
+            <option value="5">5問 (ショート)</option>
+            <option value="10">10問 (ノーマル)</option>
+            <option value="20">20問 (ロング)</option>
+            <option value="999">全問 (伝説)</option>
         </select>
     </div>
     <button class="btn-main" onclick="initGame()">冒険を開始する</button>
@@ -66,9 +81,9 @@
     <div id="battle-view">
         <div id="monster-sprite">🐉</div>
         <div class="hp-container"><div id="hp-fill"></div></div>
-        <div style="font-weight:bold; color:var(--gold);">Progress: <span id="current-count">1</span> / <span id="total-count">?</span></div>
+        <div style="color:var(--gold);">BATTLE: <span id="current-count">1</span> / <span id="total-count">?</span></div>
     </div>
-    <div id="ja-text" style="font-size:1.4rem; font-weight:bold; margin-bottom:15px;"></div>
+    <div id="ja-text" style="font-size:1.4rem; margin-bottom:15px; text-shadow: 2px 2px #000;"></div>
     
     <div id="sort-ui" style="display:none;">
         <div id="answer-area" class="card-container"></div>
@@ -77,20 +92,24 @@
 
     <div id="fix-ui" style="display:none;">
         <div id="sentence-area" class="card-container"></div>
-        <input type="text" id="type-input" autocomplete="off" placeholder="正しい形を入力...">
+        <input type="text" id="type-input" autocomplete="off" placeholder="...">
     </div>
 
-    <button class="btn-main" style="background: linear-gradient(#e74c3c, #c0392b);" onclick="submitAttack()">ATTACK!</button>
-    <div style="margin-top:10px; color:#8b4513; text-decoration:underline; cursor:pointer;" onclick="resetCurrent()">Reset Turn</div>
+    <button class="btn-main" style="border-color: var(--rpg-red); color: var(--rpg-red);" onclick="submitAttack()">▶ ATTACK!</button>
+    <div style="margin-top:15px; font-size:0.9rem; color:#aaa; cursor:pointer;" onclick="resetCurrent()">[ ターンをやり直す ]</div>
 </div>
 
 <div id="exp-layer">
-    <h1 id="exp-res" style="font-size:4rem; color:var(--gold);"></h1>
-    <p id="exp-text" style="font-size:1.5rem; padding: 20px; color:#fff; max-width:600px;"></p>
-    <button class="btn-main" style="width:300px;" onclick="closeExp()">NEXT BATTLE ▶</button>
+    <div id="exp-window">
+        <h1 id="exp-res"></h1>
+        <p id="exp-text" style="font-size:1.2rem; line-height:1.6;"></p>
+        <div id="correct-reveal" style="color:var(--hp-red); font-weight:bold; margin:10px 0; font-family:serif;"></div>
+        <button class="btn-main" onclick="closeExp()">つぎへ ▶</button>
+    </div>
 </div>
 
 <script>
+// 文法データベース (変更なし、全18項目)
 const db = {
     passive: { name: "受け身", mode: "fix", q: [
         {ja:"この手紙は彼に書かれた。", s:["This", "letter", "was", "wrote", "by", "him", "."], t:"wrote", a:"written", e:"be動詞＋過去分詞。write-wrote-written！"},
@@ -184,7 +203,7 @@ const db = {
     ]}
 };
 
-let playlist = [], qIdx = 0, currentQ = null, userAns = [], monsterHp = 100;
+let playlist = [], qIdx = 0, currentQ = null, userAns = [], monsterHp = 100, missCount = 0;
 const monsters = ["👹", "👺", "🐉", "💀", "👾", "🐺", "🧛"];
 
 const grid = document.getElementById('grammar-grid');
@@ -195,7 +214,7 @@ Object.keys(db).forEach(k => {
 
 function initGame() {
     const sel = document.querySelectorAll('.opt.selected');
-    if(!sel.length) return alert("魔法を選んでください！");
+    if(!sel.length) return alert("魔法を選択してください！");
     let all = [];
     sel.forEach(o => { 
         const cat = db[o.dataset.key]; 
@@ -210,13 +229,14 @@ function initGame() {
 }
 
 function loadQuest() {
-    if(qIdx >= playlist.length) { alert("VICTORY! すべての敵を討ち果たした！"); location.reload(); return; }
-    currentQ = playlist[qIdx]; userAns = []; monsterHp = 100; updateHp();
+    if(qIdx >= playlist.length) { alert("ALL CLEAR! あなたは伝説の魔導師になりました！"); location.reload(); return; }
+    currentQ = playlist[qIdx]; userAns = []; monsterHp = 100; missCount = 0; updateHp();
     document.getElementById('current-count').innerText = qIdx + 1;
     document.getElementById('monster-sprite').innerText = monsters[qIdx % monsters.length];
     document.getElementById('ja-text').innerText = currentQ.ja;
     document.getElementById('fix-ui').style.display = currentQ.mode === "fix" ? "block" : "none";
     document.getElementById('sort-ui').style.display = currentQ.mode === "sort" ? "block" : "none";
+    document.getElementById('correct-reveal').innerText = "";
     if(currentQ.mode === "sort") renderSort(); else renderFix();
 }
 
@@ -270,14 +290,23 @@ function submitAttack() {
             showExp("✨ SUCCESS!", currentQ.e);
         }, 600);
     } else {
-        alert("MISS! 魔法が失敗した！");
-        resetCurrent();
+        missCount++;
+        if(missCount >= 2) {
+            // 2回ミスで強制正解
+            const correctText = currentQ.mode === "sort" ? currentQ.a.join(" ") : `正解: ${currentQ.a}`;
+            document.getElementById('correct-reveal').innerText = "【正解発表】 " + correctText;
+            showExp("💀 GAME OVER", currentQ.e);
+        } else {
+            alert("MISS! 魔法が不発に終わった！\n(あと1回ミスすると正解が表示されます)");
+            resetCurrent();
+        }
     }
 }
 
 function updateHp() { document.getElementById('hp-fill').style.width = monsterHp + "%"; }
 function showExp(res, text) {
     document.getElementById('exp-res').innerText = res;
+    document.getElementById('exp-res').style.color = (res.includes("SUCCESS") ? "var(--gold)" : "var(--hp-red)");
     document.getElementById('exp-text').innerHTML = text;
     document.getElementById('exp-layer').style.display = 'flex';
 }
@@ -286,6 +315,7 @@ function closeExp() {
     qIdx++; loadQuest();
 }
 function resetCurrent() {
+    userAns = [];
     if(currentQ.mode === "sort") renderSort(); else renderFix();
 }
 </script>
